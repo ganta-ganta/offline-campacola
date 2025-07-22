@@ -61,6 +61,10 @@
             background-color: var(--accent);
             color: white;
         }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
         .tab {
             display: none;
         }
@@ -71,6 +75,7 @@
             display: flex;
             margin-bottom: 20px;
             border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
         }
         .nav-tabs button {
             padding: 10px 20px;
@@ -96,6 +101,7 @@
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
+            box-sizing: border-box;
         }
         .alert {
             padding: 10px;
@@ -105,14 +111,16 @@
         .alert-success {
             background-color: #d4edda;
             color: #155724;
+            border: 1px solid #c3e6cb;
         }
         .alert-danger {
             background-color: #f8d7da;
             color: #721c24;
+            border: 1px solid #f5c6cb;
         }
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -126,12 +134,71 @@
         .stat-card h3 {
             margin-top: 0;
             color: var(--accent);
+            font-size: 16px;
         }
         .stat-card p {
             font-size: 24px;
             font-weight: bold;
             margin: 10px 0;
             color: var(--primary);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px;
+        }
+        .product-card h4 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
     </style>
 </head>
@@ -207,19 +274,11 @@
             <div class="card">
                 <h2>Warehouse Inventory</h2>
                 <button class="btn btn-primary" onclick="exportWarehouseToExcel()">Export to Excel</button>
-                <table id="warehouse-table">
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Size</th>
-                            <th>Price</th>
-                            <th>Stock</th>
-                            <th>Location</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <button class="btn btn-secondary" onclick="exportWarehouseToPDF()">Export to PDF</button>
+                
+                <div class="product-grid" id="warehouse-products">
+                    <!-- Products will be loaded here -->
+                </div>
             </div>
         </div>
         
@@ -243,6 +302,7 @@
                             <th>ID</th>
                             <th>Name</th>
                             <th>Contact</th>
+                            <th>Assigned Stock</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -275,10 +335,12 @@
                         <tr>
                             <th>Operator</th>
                             <th>Product</th>
+                            <th>Size</th>
                             <th>Assigned</th>
                             <th>Sold</th>
                             <th>Returned</th>
                             <th>Date</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -329,6 +391,10 @@
                     <label for="report-operator">Operator</label>
                     <select id="report-operator"></select>
                 </div>
+                <div class="form-group" id="product-select-container" style="display:none;">
+                    <label for="report-product">Product</label>
+                    <select id="report-product"></select>
+                </div>
                 <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
                 <button class="btn btn-secondary" onclick="exportReportToExcel()">Export to Excel</button>
                 <button class="btn btn-secondary" onclick="exportReportToPDF()">Export to PDF</button>
@@ -363,6 +429,35 @@
                 <h3>Reset System</h3>
                 <button class="btn btn-danger" onclick="confirmReset()">Reset All Data</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Add Stock Modal -->
+    <div id="addStockModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addStockModal')">&times;</span>
+            <h2>Add Stock to Warehouse</h2>
+            <div class="form-group">
+                <label for="modal-product-name">Product</label>
+                <input type="text" id="modal-product-name" readonly>
+            </div>
+            <div class="form-group">
+                <label for="modal-product-size">Size</label>
+                <input type="text" id="modal-product-size" readonly>
+            </div>
+            <div class="form-group">
+                <label for="modal-current-stock">Current Stock</label>
+                <input type="text" id="modal-current-stock" readonly>
+            </div>
+            <div class="form-group">
+                <label for="modal-add-quantity">Quantity to Add</label>
+                <input type="number" id="modal-add-quantity" min="1" value="1">
+            </div>
+            <div class="form-group">
+                <label for="modal-location">Location</label>
+                <input type="text" id="modal-location" placeholder="Enter location (e.g., A1, B2)">
+            </div>
+            <button class="btn btn-primary" onclick="addStockToWarehouse()">Add Stock</button>
         </div>
     </div>
 
@@ -439,17 +534,37 @@
                 return stock ? stock.quantity : 0;
             }
             
-            updateWarehouseStock(productId, quantity) {
+            getWarehouseLocation(productId) {
+                const stock = this.warehouseStock.find(s => s.productId == productId);
+                return stock ? stock.location : 'N/A';
+            }
+            
+            updateWarehouseStock(productId, quantity, location = null) {
                 const stockItem = this.warehouseStock.find(s => s.productId == productId);
                 if (stockItem) {
                     stockItem.quantity += quantity;
+                    if (location) {
+                        stockItem.location = location;
+                    }
                 } else {
                     this.warehouseStock.push({
                         productId,
                         quantity,
-                        location: 'NEW'
+                        location: location || 'NEW'
                     });
                 }
+                
+                // Record transaction
+                const transactionType = quantity >= 0 ? 'stock_added' : 'stock_removed';
+                this.transactions.push({
+                    id: this.transactions.length + 1,
+                    type: transactionType,
+                    productId,
+                    quantity: Math.abs(quantity),
+                    date: new Date().toISOString().split('T')[0],
+                    timestamp: new Date().toISOString()
+                });
+                
                 this.saveToLocalStorage();
             }
             
@@ -466,9 +581,22 @@
             }
             
             removeOperator(operatorId) {
+                // Return all assigned stock to warehouse first
+                const assignments = this.operatorStock.filter(os => os.operatorId == operatorId && os.sold < os.assigned);
+                assignments.forEach(as => {
+                    const returned = as.assigned - as.sold;
+                    this.updateWarehouseStock(as.productId, returned);
+                });
+                
                 this.operators = this.operators.filter(o => o.id != operatorId);
                 this.operatorStock = this.operatorStock.filter(os => os.operatorId != operatorId);
                 this.saveToLocalStorage();
+            }
+            
+            getOperatorAssignedStock(operatorId) {
+                return this.operatorStock
+                    .filter(os => os.operatorId == operatorId)
+                    .reduce((sum, os) => sum + os.assigned, 0);
             }
             
             // Stock assignment methods
@@ -515,6 +643,22 @@
                 return true;
             }
             
+            removeOperatorAssignment(assignmentId) {
+                const assignment = this.operatorStock.find(as => as.id == assignmentId);
+                if (!assignment) return false;
+                
+                // Return unsold stock to warehouse
+                const returned = assignment.assigned - assignment.sold;
+                if (returned > 0) {
+                    this.updateWarehouseStock(assignment.productId, returned);
+                }
+                
+                // Remove the assignment
+                this.operatorStock = this.operatorStock.filter(as => as.id != assignmentId);
+                this.saveToLocalStorage();
+                return true;
+            }
+            
             recordOperatorSales(operatorId, salesData, date) {
                 date = date || new Date().toISOString().split('T')[0];
                 
@@ -529,9 +673,6 @@
                         const sold = parseInt(sale.sold);
                         assignment.sold = sold;
                         assignment.returned = assignment.assigned - sold;
-                        
-                        // Return unsold to warehouse
-                        this.updateWarehouseStock(sale.productId, assignment.returned);
                         
                         // Record transaction
                         this.transactions.push({
@@ -739,7 +880,7 @@
                     products: this.products,
                     warehouseStock: this.warehouseStock,
                     operators: this.operators,
-                    operatorStock: this.operatorStock,
+                    operatorStock: this.operatorStock.map(os => ({ ...os, id: os.id || Date.now() + Math.floor(Math.random() * 1000) })),
                     transactions: this.transactions
                 };
             }
@@ -765,6 +906,7 @@
 
         // Initialize the database
         const db = new WarehouseDB();
+        let currentProductForStockAdd = null;
 
         // UI Functions
         function openTab(tabName) {
@@ -826,7 +968,7 @@
                         <td>${product.name}</td>
                         <td>${product.size}</td>
                         <td>${ws.quantity}</td>
-                        <td><button class="btn btn-primary" onclick="openTab('warehouse')">Manage</button></td>
+                        <td><button class="btn btn-primary" onclick="showAddStockModal(${product.id})">Add Stock</button></td>
                     `;
                 }
             });
@@ -855,24 +997,27 @@
         }
 
         function refreshWarehouse() {
-            const warehouseTable = document.getElementById('warehouse-table').querySelector('tbody');
-            warehouseTable.innerHTML = '';
+            const warehouseContainer = document.getElementById('warehouse-products');
+            warehouseContainer.innerHTML = '';
             
             db.products.forEach(product => {
                 const stock = db.getWarehouseStock(product.id);
-                const stockItem = db.warehouseStock.find(ws => ws.productId == product.id);
+                const location = db.getWarehouseLocation(product.id);
                 
-                const row = warehouseTable.insertRow();
-                row.innerHTML = `
-                    <td>${product.name}</td>
-                    <td>${product.size}</td>
-                    <td>${product.price}</td>
-                    <td>${stock}</td>
-                    <td>${stockItem ? stockItem.location : 'N/A'}</td>
-                    <td>
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.innerHTML = `
+                    <h4>${product.name}</h4>
+                    <p><strong>Size:</strong> ${product.size}</p>
+                    <p><strong>Price:</strong> ${product.price}</p>
+                    <p><strong>Stock:</strong> ${stock}</p>
+                    <p><strong>Location:</strong> ${location}</p>
+                    <div class="action-buttons">
                         <button class="btn btn-primary" onclick="showAddStockModal(${product.id})">Add Stock</button>
-                    </td>
+                    </div>
                 `;
+                
+                warehouseContainer.appendChild(productCard);
             });
         }
 
@@ -886,11 +1031,14 @@
             operatorsTable.innerHTML = '';
             
             db.operators.forEach(operator => {
+                const assignedStock = db.getOperatorAssignedStock(operator.id);
+                
                 const row = operatorsTable.insertRow();
                 row.innerHTML = `
                     <td>${operator.id}</td>
                     <td>${operator.name}</td>
                     <td>${operator.contact}</td>
+                    <td>${assignedStock}</td>
                     <td>
                         <button class="btn btn-danger" onclick="deleteOperator(${operator.id})">Delete</button>
                     </td>
@@ -900,7 +1048,7 @@
 
         function refreshAssignStock() {
             const operatorSelect = document.getElementById('assign-operator');
-            operatorSelect.innerHTML = '';
+            operatorSelect.innerHTML = '<option value="">Select Operator</option>';
             db.operators.forEach(operator => {
                 const option = document.createElement('option');
                 option.value = operator.id;
@@ -909,11 +1057,12 @@
             });
             
             const productSelect = document.getElementById('assign-product');
-            productSelect.innerHTML = '';
+            productSelect.innerHTML = '<option value="">Select Product</option>';
             db.products.forEach(product => {
+                const stock = db.getWarehouseStock(product.id);
                 const option = document.createElement('option');
                 option.value = product.id;
-                option.textContent = `${product.name} (${product.size}) - Stock: ${db.getWarehouseStock(product.id)}`;
+                option.textContent = `${product.name} (${product.size}) - Stock: ${stock}`;
                 productSelect.appendChild(option);
             });
             
@@ -930,18 +1079,22 @@
                     const row = assignmentsTable.insertRow();
                     row.innerHTML = `
                         <td>${operator.name}</td>
-                        <td>${product.name} (${product.size})</td>
+                        <td>${product.name}</td>
+                        <td>${product.size}</td>
                         <td>${os.assigned}</td>
                         <td>${os.sold}</td>
                         <td>${os.returned}</td>
                         <td>${os.date}</td>
+                        <td>
+                            <button class="btn btn-danger" onclick="removeAssignment(${os.id || os.productId + '-' + os.operatorId + '-' + os.date})">Remove</button>
+                        </td>
                     `;
                 });
         }
 
         function refreshSales() {
             const operatorSelect = document.getElementById('sales-operator');
-            operatorSelect.innerHTML = '';
+            operatorSelect.innerHTML = '<option value="">Select Operator</option>';
             db.operators.forEach(operator => {
                 const option = document.createElement('option');
                 option.value = operator.id;
@@ -969,7 +1122,7 @@
             );
             
             if (assignments.length === 0) {
-                container.innerHTML = '<p>No products assigned to this operator for the selected date.</p>';
+                container.innerHTML = '<div class="alert alert-danger">No products assigned to this operator for the selected date.</div>';
                 return;
             }
             
@@ -1002,10 +1155,12 @@
             reportTypeSelect.addEventListener('change', function() {
                 document.getElementById('operator-select-container').style.display = 
                     this.value === 'operator' ? 'block' : 'none';
+                document.getElementById('product-select-container').style.display = 
+                    this.value === 'product' ? 'block' : 'none';
             });
             
             const operatorSelect = document.getElementById('report-operator');
-            operatorSelect.innerHTML = '';
+            operatorSelect.innerHTML = '<option value="">Select Operator</option>';
             db.operators.forEach(operator => {
                 const option = document.createElement('option');
                 option.value = operator.id;
@@ -1013,10 +1168,67 @@
                 operatorSelect.appendChild(option);
             });
             
+            const productSelect = document.getElementById('report-product');
+            productSelect.innerHTML = '<option value="">Select Product</option>';
+            db.products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} (${product.size})`;
+                productSelect.appendChild(option);
+            });
+            
             document.getElementById('report-date').value = new Date().toISOString().split('T')[0];
         }
 
+        // Modal Functions
+        function showAddStockModal(productId) {
+            currentProductForStockAdd = productId;
+            const product = db.getProductById(productId);
+            const stock = db.getWarehouseStock(productId);
+            const location = db.getWarehouseLocation(productId);
+            
+            document.getElementById('modal-product-name').value = product.name;
+            document.getElementById('modal-product-size').value = product.size;
+            document.getElementById('modal-current-stock').value = stock;
+            document.getElementById('modal-add-quantity').value = '10';
+            document.getElementById('modal-location').value = location;
+            
+            document.getElementById('addStockModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
         // Action Functions
+        function addStockToWarehouse() {
+            const quantity = parseInt(document.getElementById('modal-add-quantity').value);
+            const location = document.getElementById('modal-location').value.trim();
+            
+            if (!quantity || quantity <= 0) {
+                alert('Please enter a valid quantity');
+                return;
+            }
+            
+            if (!location) {
+                alert('Please enter a location');
+                return;
+            }
+            
+            db.updateWarehouseStock(currentProductForStockAdd, quantity, location);
+            closeModal('addStockModal');
+            
+            refreshWarehouse();
+            refreshDashboard();
+            
+            const message = document.createElement('div');
+            message.className = 'alert alert-success';
+            message.textContent = `Stock added successfully!`;
+            document.getElementById('warehouse').insertBefore(message, document.querySelector('#warehouse .card'));
+            
+            setTimeout(() => message.remove(), 3000);
+        }
+
         function addOperator() {
             const name = document.getElementById('operator-name').value.trim();
             const contact = document.getElementById('operator-contact').value.trim();
@@ -1038,10 +1250,12 @@
         }
 
         function deleteOperator(operatorId) {
-            if (confirm('Are you sure you want to delete this operator and all their data?')) {
+            if (confirm('Are you sure you want to delete this operator? All their assigned stock will be returned to warehouse.')) {
                 const operator = db.operators.find(o => o.id == operatorId);
                 db.removeOperator(operatorId);
                 refreshOperators();
+                refreshDashboard();
+                refreshAssignStock();
                 
                 const message = document.createElement('div');
                 message.className = 'alert alert-success';
@@ -1073,14 +1287,38 @@
                 document.getElementById('assign').insertBefore(message, document.querySelector('#assign .card'));
                 
                 setTimeout(() => message.remove(), 3000);
+                
+                refreshDashboard();
             } else {
                 alert('Not enough stock in warehouse!');
+            }
+        }
+
+        function removeAssignment(assignmentId) {
+            if (confirm('Are you sure you want to remove this assignment? Unsold stock will be returned to warehouse.')) {
+                const success = db.removeOperatorAssignment(assignmentId);
+                if (success) {
+                    refreshAssignStock();
+                    refreshDashboard();
+                    
+                    const message = document.createElement('div');
+                    message.className = 'alert alert-success';
+                    message.textContent = `Assignment removed successfully!`;
+                    document.getElementById('assign').insertBefore(message, document.querySelector('#assign .card'));
+                    
+                    setTimeout(() => message.remove(), 3000);
+                }
             }
         }
 
         function recordSales() {
             const operatorId = parseInt(document.getElementById('sales-operator').value);
             const date = document.getElementById('sales-date').value;
+            
+            if (!operatorId) {
+                alert('Please select an operator');
+                return;
+            }
             
             const salesData = [];
             const productInputs = document.querySelectorAll('#sales-products-container input[type="number"]');
@@ -1134,9 +1372,17 @@
                     report = db.getOperatorPerformance(operatorId);
                     break;
                 case 'product':
-                    // For simplicity, showing first product - would need product selection
-                    report = db.getProductSales(1);
+                    const productId = parseInt(document.getElementById('report-product').value);
+                    report = db.getProductSales(productId);
                     break;
+                default:
+                    alert('Invalid report type');
+                    return;
+            }
+            
+            if ((reportType === 'operator' && !report) || (reportType === 'product' && !report)) {
+                alert('No data available for the selected criteria');
+                return;
             }
             
             displayReport(report, reportType);
@@ -1165,6 +1411,11 @@
                             <th>Profit</th>
                         </tr>
                     `;
+                    
+                    if (report.operators.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="8">No data available for this date</td></tr>';
+                        break;
+                    }
                     
                     report.operators.forEach(operator => {
                         operator.products.forEach(product => {
@@ -1219,6 +1470,11 @@
                         </tr>
                     `;
                     
+                    if (report.assignments.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="8">No data available for this operator</td></tr>';
+                        break;
+                    }
+                    
                     report.assignments.forEach(assignment => {
                         const row = tbody.insertRow();
                         row.innerHTML = `
@@ -1241,6 +1497,46 @@
                         <td><strong>${report.totalSold}</strong></td>
                         <td>${report.totalReturned}</td>
                         <td></td>
+                        <td><strong>${report.totalProfit}</strong></td>
+                    `;
+                    break;
+                    
+                case 'product':
+                    thead.innerHTML = `
+                        <tr>
+                            <th>Date</th>
+                            <th>Operator</th>
+                            <th>Assigned</th>
+                            <th>Sold</th>
+                            <th>Returned</th>
+                            <th>Profit</th>
+                        </tr>
+                    `;
+                    
+                    if (report.sales.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6">No data available for this product</td></tr>';
+                        break;
+                    }
+                    
+                    report.sales.forEach(sale => {
+                        const row = tbody.insertRow();
+                        row.innerHTML = `
+                            <td>${sale.date}</td>
+                            <td>${sale.operatorName}</td>
+                            <td>${sale.assigned}</td>
+                            <td>${sale.sold}</td>
+                            <td>${sale.returned}</td>
+                            <td>${sale.profit}</td>
+                        `;
+                    });
+                    
+                    // Add total row
+                    const productTotalRow = tbody.insertRow();
+                    productTotalRow.innerHTML = `
+                        <td colspan="2"><strong>TOTAL</strong></td>
+                        <td>${report.totalAssigned}</td>
+                        <td><strong>${report.totalSold}</strong></td>
+                        <td>${report.totalReturned}</td>
                         <td><strong>${report.totalProfit}</strong></td>
                     `;
                     break;
@@ -1270,6 +1566,11 @@
 
         function exportReportToExcel() {
             const reportTable = document.getElementById('report-table');
+            if (reportTable.rows.length <= 1) {
+                alert('No report data to export');
+                return;
+            }
+            
             const ws = XLSX.utils.table_to_sheet(reportTable);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Report");
@@ -1322,10 +1623,42 @@
             XLSX.writeFile(wb, "CampaCola_Warehouse_Inventory.xlsx");
         }
 
+        function exportWarehouseToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const title = "Campa Cola Warehouse Inventory";
+            doc.text(title, 14, 10);
+            
+            const headers = [["Product", "Size", "Price", "Stock", "Location"]];
+            const data = db.products.map(product => {
+                const stock = db.warehouseStock.find(ws => ws.productId == product.id);
+                return [
+                    product.name,
+                    product.size,
+                    product.price,
+                    stock ? stock.quantity : 0,
+                    stock ? stock.location : 'N/A'
+                ];
+            });
+            
+            doc.autoTable({
+                head: headers,
+                body: data,
+                startY: 20,
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [227, 25, 55] // Campa Cola red
+                }
+            });
+            
+            doc.save("CampaCola_Warehouse_Inventory.pdf");
+        }
+
         // Backup Functions
         function backupData() {
             const data = db.backupData();
-            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             saveAs(blob, `CampaCola_Backup_${new Date().toISOString().split('T')[0]}.json`);
             
             const message = document.getElementById('backup-message');
@@ -1385,7 +1718,23 @@
             XLSX.utils.book_append_sheet(wb, operatorStockWs, "OperatorStock");
             
             // Transactions sheet
-            const transactionsWs = XLSX.utils.json_to_sheet(db.transactions);
+            const transactionsData = db.transactions.map(tx => {
+                const product = db.getProductById(tx.productId);
+                const operator = tx.operatorId ? db.operators.find(o => o.id == tx.operatorId) : null;
+                return {
+                    ID: tx.id,
+                    Type: tx.type,
+                    Date: tx.date,
+                    Timestamp: tx.timestamp,
+                    ProductID: tx.productId,
+                    ProductName: product ? product.name : 'N/A',
+                    OperatorID: tx.operatorId,
+                    OperatorName: operator ? operator.name : 'N/A',
+                    Quantity: tx.quantity,
+                    Returned: tx.returned || 0
+                };
+            });
+            const transactionsWs = XLSX.utils.json_to_sheet(transactionsData);
             XLSX.utils.book_append_sheet(wb, transactionsWs, "Transactions");
             
             XLSX.writeFile(wb, `CampaCola_Full_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
@@ -1487,21 +1836,14 @@
             document.querySelectorAll('input[type="date"]').forEach(input => {
                 input.value = today;
             });
-        });
-
-        // Helper function to show add stock modal
-        function showAddStockModal(productId) {
-            const product = db.getProductById(productId);
-            const quantity = prompt(`Enter quantity to add for ${product.name} (${product.size})`, '10');
             
-            if (quantity && !isNaN(quantity) {
-                db.updateWarehouseStock(productId, parseInt(quantity));
-                refreshWarehouse();
-                refreshDashboard();
-                
-                alert(`${quantity} items added to ${product.name} stock`);
-            }
-        }
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                if (event.target.className === 'modal') {
+                    event.target.style.display = 'none';
+                }
+            };
+        });
     </script>
 </body>
 </html>
