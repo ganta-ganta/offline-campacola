@@ -1,0 +1,1982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campa Cola Warehouse Management</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary: #e31937; /* Campa Cola red */
+            --secondary: #f8f8f8;
+            --accent: #2c3e50;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--secondary);
+        }
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-secondary {
+            background-color: var(--accent);
+            color: white;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .tab {
+            display: none;
+        }
+        .tab.active {
+            display: block;
+        }
+        .nav-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+        }
+        .nav-tabs button {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        .nav-tabs button.active {
+            border-bottom: 3px solid var(--primary);
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .alert {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-card h3 {
+            margin-top: 0;
+            color: var(--accent);
+            font-size: 16px;
+        }
+        .stat-card p {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: var(--primary);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px;
+        }
+        .product-card h4 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>Campa Cola Warehouse Management</h1>
+        
+        <div class="nav-tabs">
+            <button class="active" onclick="openTab('dashboard')">Dashboard</button>
+            <button onclick="openTab('warehouse')">Warehouse</button>
+            <button onclick="openTab('operators')">Operators</button>
+            <button onclick="openTab('assign')">Assign Stock</button>
+            <button onclick="openTab('sales')">Record Sales</button>
+            <button onclick="openTab('reports')">Reports</button>
+            <button onclick="openTab('backup')">Backup/Restore</button>
+        </div>
+        
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Products</h3>
+                    <p id="total-products">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Warehouse Stock</h3>
+                    <p id="warehouse-total">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Active Operators</h3>
+                    <p id="total-operators">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Today's Sales</h3>
+                    <p id="today-sales">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Today's Profit</h3>
+                    <p id="today-profit">0</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Low Stock Alerts</h2>
+                <table id="low-stock-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Size</th>
+                            <th>Current Stock</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <div class="card">
+                <h2>Recent Transactions</h2>
+                <table id="recent-transactions">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Operator</th>
+                            <th>Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Warehouse Tab -->
+        <div id="warehouse" class="tab">
+            <div class="card">
+                <h2>Warehouse Inventory</h2>
+                <button class="btn btn-primary" onclick="exportWarehouseToExcel()">Export to Excel</button>
+                <button class="btn btn-secondary" onclick="exportWarehouseToPDF()">Export to PDF</button>
+                
+                <div class="product-grid" id="warehouse-products">
+                    <!-- Products will be loaded here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Operators Tab -->
+        <div id="operators" class="tab">
+            <div class="card">
+                <h2>Operators</h2>
+                <div class="form-group">
+                    <label for="operator-name">Operator Name</label>
+                    <input type="text" id="operator-name" placeholder="Enter operator name">
+                </div>
+                <div class="form-group">
+                    <label for="operator-contact">Contact Number</label>
+                    <input type="text" id="operator-contact" placeholder="Enter contact number">
+                </div>
+                <button class="btn btn-primary" onclick="addOperator()">Add Operator</button>
+                
+                <table id="operators-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Contact</th>
+                            <th>Assigned Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Assign Stock Tab -->
+        <div id="assign" class="tab">
+            <div class="card">
+                <h2>Assign Stock to Operator</h2>
+                <div class="form-group">
+                    <label for="assign-operator">Operator</label>
+                    <select id="assign-operator"></select>
+                </div>
+                <div class="form-group">
+                    <label for="assign-product">Product</label>
+                    <select id="assign-product"></select>
+                </div>
+                <div class="form-group">
+                    <label for="assign-quantity">Quantity</label>
+                    <input type="number" id="assign-quantity" min="1" value="1">
+                </div>
+                <button class="btn btn-primary" onclick="assignStock()">Assign Stock</button>
+                
+                <h3>Current Assignments</h3>
+                <table id="assignments-table">
+                    <thead>
+                        <tr>
+                            <th>Operator</th>
+                            <th>Product</th>
+                            <th>Size</th>
+                            <th>Assigned</th>
+                            <th>Sold</th>
+                            <th>Returned</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Sales Tab -->
+        <div id="sales" class="tab">
+            <div class="card">
+                <h2>Record Operator Sales</h2>
+                <div class="form-group">
+                    <label for="sales-operator">Operator</label>
+                    <select id="sales-operator" onchange="loadOperatorProducts()"></select>
+                </div>
+                <div class="form-group">
+                    <label for="sales-date">Date</label>
+                    <input type="date" id="sales-date">
+                </div>
+                
+                <div id="sales-products-container">
+                    <!-- Products will be loaded here -->
+                </div>
+                
+                <button class="btn btn-primary" onclick="recordSales()">Record Sales</button>
+            </div>
+        </div>
+        
+        <!-- Reports Tab -->
+        <div id="reports" class="tab">
+            <div class="card">
+                <h2>Generate Reports</h2>
+                <div class="form-group">
+                    <label for="report-type">Report Type</label>
+                    <select id="report-type">
+                        <option value="daily">Daily Report</option>
+                        <option value="weekly">Weekly Report</option>
+                        <option value="monthly">Monthly Report</option>
+                        <option value="operator">Operator Performance</option>
+                        <option value="product">Product Sales</option>
+                        <option value="profit">Profit Analysis</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="report-date">Date</label>
+                    <input type="date" id="report-date">
+                </div>
+                <div class="form-group" id="operator-select-container" style="display:none;">
+                    <label for="report-operator">Operator</label>
+                    <select id="report-operator"></select>
+                </div>
+                <div class="form-group" id="product-select-container" style="display:none;">
+                    <label for="report-product">Product</label>
+                    <select id="report-product"></select>
+                </div>
+                <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
+                <button class="btn btn-secondary" onclick="exportReportToExcel()">Export to Excel</button>
+                <button class="btn btn-secondary" onclick="exportReportToPDF()">Export to PDF</button>
+                
+                <div id="report-results" class="card" style="margin-top:20px; display:none;">
+                    <h3>Report Results</h3>
+                    <table id="report-table">
+                        <thead></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Backup/Restore Tab -->
+        <div id="backup" class="tab">
+            <div class="card">
+                <h2>Data Backup & Restore</h2>
+                <div class="alert alert-success" id="backup-message" style="display:none;"></div>
+                
+                <h3>Backup Data</h3>
+                <button class="btn btn-primary" onclick="backupData()">Create Backup (JSON)</button>
+                <button class="btn btn-primary" onclick="backupToExcel()">Create Backup (Excel)</button>
+                
+                <h3>Restore Data</h3>
+                <div class="form-group">
+                    <label for="restore-file">Select Backup File</label>
+                    <input type="file" id="restore-file" accept=".json,.xlsx,.xls">
+                </div>
+                <button class="btn btn-secondary" onclick="restoreData()">Restore Data</button>
+                
+                <h3>Reset System</h3>
+                <button class="btn btn-danger" onclick="confirmReset()">Reset All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Stock Modal -->
+    <div id="addStockModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addStockModal')">&times;</span>
+            <h2>Add Stock to Warehouse</h2>
+            <div class="form-group">
+                <label for="modal-product-name">Product</label>
+                <input type="text" id="modal-product-name" readonly>
+            </div>
+            <div class="form-group">
+                <label for="modal-product-size">Size</label>
+                <input type="text" id="modal-product-size" readonly>
+            </div>
+            <div class="form-group">
+                <label for="modal-current-stock">Current Stock</label>
+                <input type="text" id="modal-current-stock" readonly>
+            </div>
+            <div class="form-group">
+                <label for="modal-add-quantity">Quantity to Add</label>
+                <input type="number" id="modal-add-quantity" min="1" value="1">
+            </div>
+            <div class="form-group">
+                <label for="modal-location">Location</label>
+                <input type="text" id="modal-location" placeholder="Enter location (e.g., A1, B2)">
+            </div>
+            <button class="btn btn-primary" onclick="addStockToWarehouse()">Add Stock</button>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to format currency
+        function formatCurrency(amount) {
+            return parseFloat(amount || 0).toFixed(2);
+        }
+
+        // Initialize the database
+        class WarehouseDB {
+            constructor() {
+                this.products = [
+                    { id: 1, name: 'Campa Cola', size: '200ml', price: 220, costPrice: 198 },
+                    { id: 2, name: 'Power Up', size: '200ml', price: 220, costPrice: 198 },
+                    { id: 3, name: 'Orange', size: '200ml', price: 220, costPrice: 198 },
+                    { id: 4, name: 'Campa Soda', size: '500ml', price: 260, costPrice: 220 },
+                    { id: 5, name: 'Campa Cola', size: '500ml', price: 360, costPrice: 320 },
+                    { id: 6, name: 'Orange', size: '500ml', price: 360, costPrice: 320 },
+                    { id: 7, name: 'Gold Boost Tin', size: 'Can', price: 580, costPrice: 550 },
+                    { id: 8, name: 'Berry Kick', size: '200ml', price: 220, costPrice: 180 },
+                    { id: 9, name: 'Lemon', size: '200ml', price: 220, costPrice: 198 },
+                    { id: 10, name: 'Raskik Tetra Mango', size: '125ml', price: 280, costPrice: 250 },
+                    { id: 11, name: 'Raskik Mango', size: '150ml', price: 220, costPrice: 185 },
+                    { id: 12, name: 'Raskik Nimbu Pani', size: '150ml', price: 220, costPrice: 185 },
+                    { id: 13, name: 'Raskik Apple Drink', size: '150ml', price: 220, costPrice: 185 },
+                    { id: 14, name: 'Raskik Mixed Fruit', size: '150ml', price: 220, costPrice: 185 },
+                    { id: 15, name: 'Raskik Glucose', size: '150ml', price: 220, costPrice: 185 },
+                    { id: 16, name: 'Spinner Lemon', size: '150ml', price: 220, costPrice: 185 },
+                    { id: 17, name: 'Spinner Orange', size: '150ml', price: 220, costPrice: 185 },
+                    { id: 18, name: 'Spinner Nitro', size: '150ml', price: 220, costPrice: 185 },
+                    { id: 19, name: 'Independence Water', size: '750ml', price: 150, costPrice: 128 }
+                ];
+                
+                this.warehouseStock = this.products.map(product => ({
+                    productId: product.id,
+                    quantity: 100,
+                    location: 'A' + Math.floor(Math.random() * 10 + 1)
+                }));
+                
+                this.operators = [];
+                this.operatorStock = [];
+                this.transactions = [];
+                
+                this.loadFromLocalStorage();
+            }
+            
+            loadFromLocalStorage() {
+                const savedData = localStorage.getItem('campaColaWarehouse');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    this.products = data.products || this.products;
+                    this.warehouseStock = data.warehouseStock || this.warehouseStock;
+                    this.operators = data.operators || this.operators;
+                    this.operatorStock = data.operatorStock || this.operatorStock;
+                    this.transactions = data.transactions || this.transactions;
+                }
+            }
+            
+            saveToLocalStorage() {
+                const data = {
+                    products: this.products,
+                    warehouseStock: this.warehouseStock,
+                    operators: this.operators,
+                    operatorStock: this.operatorStock,
+                    transactions: this.transactions
+                };
+                localStorage.setItem('campaColaWarehouse', JSON.stringify(data));
+            }
+            
+            // Product methods
+            getProductById(id) {
+                return this.products.find(p => p.id == id);
+            }
+            
+            // Warehouse methods
+            getWarehouseStock(productId) {
+                const stock = this.warehouseStock.find(s => s.productId == productId);
+                return stock ? stock.quantity : 0;
+            }
+            
+            getWarehouseLocation(productId) {
+                const stock = this.warehouseStock.find(s => s.productId == productId);
+                return stock ? stock.location : 'N/A';
+            }
+            
+            updateWarehouseStock(productId, quantity, location = null) {
+                const stockItem = this.warehouseStock.find(s => s.productId == productId);
+                if (stockItem) {
+                    stockItem.quantity += quantity;
+                    if (location) {
+                        stockItem.location = location;
+                    }
+                } else {
+                    this.warehouseStock.push({
+                        productId,
+                        quantity,
+                        location: location || 'NEW'
+                    });
+                }
+                
+                // Record transaction
+                const transactionType = quantity >= 0 ? 'stock_added' : 'stock_removed';
+                this.transactions.push({
+                    id: this.transactions.length + 1,
+                    type: transactionType,
+                    productId,
+                    quantity: Math.abs(quantity),
+                    date: new Date().toISOString().split('T')[0],
+                    timestamp: new Date().toISOString()
+                });
+                
+                this.saveToLocalStorage();
+            }
+            
+            // Operator methods
+            addOperator(name, contact) {
+                const newId = this.operators.length > 0 ? Math.max(...this.operators.map(o => o.id)) + 1 : 1;
+                this.operators.push({
+                    id: newId,
+                    name,
+                    contact
+                });
+                this.saveToLocalStorage();
+                return newId;
+            }
+            
+            removeOperator(operatorId) {
+                // Return all assigned stock to warehouse first
+                const assignments = this.operatorStock.filter(os => os.operatorId == operatorId && os.sold < os.assigned);
+                assignments.forEach(as => {
+                    const returned = as.assigned - as.sold;
+                    this.updateWarehouseStock(as.productId, returned);
+                });
+                
+                this.operators = this.operators.filter(o => o.id != operatorId);
+                this.operatorStock = this.operatorStock.filter(os => os.operatorId != operatorId);
+                this.saveToLocalStorage();
+            }
+            
+            getOperatorAssignedStock(operatorId) {
+                return this.operatorStock
+                    .filter(os => os.operatorId == operatorId)
+                    .reduce((sum, os) => sum + os.assigned, 0);
+            }
+            
+            // Stock assignment methods
+            assignStockToOperator(operatorId, productId, quantity) {
+                const warehouseStock = this.getWarehouseStock(productId);
+                if (warehouseStock < quantity) {
+                    return false;
+                }
+                
+                // Deduct from warehouse
+                this.updateWarehouseStock(productId, -quantity);
+                
+                // Add to operator stock
+                const today = new Date().toISOString().split('T')[0];
+                const existingAssignment = this.operatorStock.find(os => 
+                    os.operatorId == operatorId && os.productId == productId && os.date == today
+                );
+                
+                if (existingAssignment) {
+                    existingAssignment.assigned += quantity;
+                } else {
+                    this.operatorStock.push({
+                        operatorId,
+                        productId,
+                        assigned: quantity,
+                        sold: 0,
+                        returned: 0,
+                        date: today
+                    });
+                }
+                
+                // Record transaction
+                this.transactions.push({
+                    id: this.transactions.length + 1,
+                    type: 'warehouse_to_operator',
+                    operatorId,
+                    productId,
+                    quantity,
+                    date: today,
+                    timestamp: new Date().toISOString()
+                });
+                
+                this.saveToLocalStorage();
+                return true;
+            }
+            
+            removeOperatorAssignment(assignmentId) {
+                const assignment = this.operatorStock.find(as => as.id == assignmentId);
+                if (!assignment) return false;
+                
+                // Return unsold stock to warehouse
+                const returned = assignment.assigned - assignment.sold;
+                if (returned > 0) {
+                    this.updateWarehouseStock(assignment.productId, returned);
+                }
+                
+                // Remove the assignment
+                this.operatorStock = this.operatorStock.filter(as => as.id != assignmentId);
+                this.saveToLocalStorage();
+                return true;
+            }
+            
+            recordOperatorSales(operatorId, salesData, date) {
+                date = date || new Date().toISOString().split('T')[0];
+                
+                salesData.forEach(sale => {
+                    const assignment = this.operatorStock.find(os => 
+                        os.operatorId == operatorId && 
+                        os.productId == sale.productId && 
+                        os.date == date
+                    );
+                    
+                    if (assignment) {
+                        const sold = parseInt(sale.sold);
+                        assignment.sold = sold;
+                        assignment.returned = assignment.assigned - sold;
+                        
+                        // Record transaction with accurate profit calculation
+                        const product = this.getProductById(sale.productId);
+                        const profit = sold * (product.price - product.costPrice);
+                        
+                        this.transactions.push({
+                            id: this.transactions.length + 1,
+                            type: 'operator_sale',
+                            operatorId,
+                            productId: sale.productId,
+                            quantity: sold,
+                            returned: assignment.returned,
+                            profit: profit,
+                            date,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                });
+                
+                this.saveToLocalStorage();
+            }
+            
+            // Report methods
+            getDailyReport(date) {
+                date = date || new Date().toISOString().split('T')[0];
+                const operatorSales = this.operatorStock.filter(os => os.date == date);
+                
+                const report = {
+                    date,
+                    operators: [],
+                    totalSales: 0,
+                    totalProfit: 0
+                };
+                
+                this.operators.forEach(operator => {
+                    const sales = operatorSales.filter(os => os.operatorId == operator.id);
+                    if (sales.length > 0) {
+                        const operatorData = {
+                            operatorId: operator.id,
+                            operatorName: operator.name,
+                            products: [],
+                            totalSales: 0,
+                            totalProfit: 0
+                        };
+                        
+                        sales.forEach(sale => {
+                            const product = this.getProductById(sale.productId);
+                            const profit = sale.sold * (product.price - product.costPrice);
+                            
+                            operatorData.products.push({
+                                productId: product.id,
+                                productName: product.name,
+                                size: product.size,
+                                assigned: sale.assigned,
+                                sold: sale.sold,
+                                returned: sale.returned,
+                                price: product.price,
+                                costPrice: product.costPrice,
+                                profit: profit
+                            });
+                            
+                            operatorData.totalSales += sale.sold;
+                            operatorData.totalProfit += profit;
+                        });
+                        
+                        report.operators.push(operatorData);
+                        report.totalSales += operatorData.totalSales;
+                        report.totalProfit += operatorData.totalProfit;
+                    }
+                });
+                
+                return report;
+            }
+            
+            getWeeklyReport(year, week) {
+                // Simplified implementation - would need proper week calculation
+                const startDate = new Date(year, 0, 1 + (week - 1) * 7);
+                const endDate = new Date(year, 0, 1 + week * 7);
+                
+                const report = {
+                    year,
+                    week,
+                    startDate: startDate.toISOString().split('T')[0],
+                    endDate: endDate.toISOString().split('T')[0],
+                    dailyReports: [],
+                    totalSales: 0,
+                    totalProfit: 0
+                };
+                
+                for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                    const daily = this.getDailyReport(d.toISOString().split('T')[0]);
+                    if (daily.operators.length > 0) {
+                        report.dailyReports.push(daily);
+                        report.totalSales += daily.totalSales;
+                        report.totalProfit += daily.totalProfit;
+                    }
+                }
+                
+                return report;
+            }
+            
+            getMonthlyReport(year, month) {
+                const report = {
+                    year,
+                    month,
+                    dailyReports: [],
+                    totalSales: 0,
+                    totalProfit: 0
+                };
+                
+                const daysInMonth = new Date(year, month, 0).getDate();
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                    const daily = this.getDailyReport(date);
+                    if (daily.operators.length > 0) {
+                        report.dailyReports.push(daily);
+                        report.totalSales += daily.totalSales;
+                        report.totalProfit += daily.totalProfit;
+                    }
+                }
+                
+                return report;
+            }
+            
+            getOperatorPerformance(operatorId) {
+                const operator = this.operators.find(o => o.id == operatorId);
+                if (!operator) return null;
+                
+                const report = {
+                    operatorId,
+                    operatorName: operator.name,
+                    assignments: [],
+                    totalAssigned: 0,
+                    totalSold: 0,
+                    totalReturned: 0,
+                    totalProfit: 0
+                };
+                
+                this.operatorStock
+                    .filter(os => os.operatorId == operatorId)
+                    .forEach(os => {
+                        const product = this.getProductById(os.productId);
+                        const profit = os.sold * (product.price - product.costPrice);
+                        
+                        report.assignments.push({
+                            date: os.date,
+                            productId: product.id,
+                            productName: product.name,
+                            size: product.size,
+                            assigned: os.assigned,
+                            sold: os.sold,
+                            returned: os.returned,
+                            price: product.price,
+                            costPrice: product.costPrice,
+                            profit: profit
+                        });
+                        
+                        report.totalAssigned += os.assigned;
+                        report.totalSold += os.sold;
+                        report.totalReturned += os.returned;
+                        report.totalProfit += profit;
+                    });
+                
+                return report;
+            }
+            
+            getProductSales(productId) {
+                const product = this.getProductById(productId);
+                if (!product) return null;
+                
+                const report = {
+                    productId,
+                    productName: product.name,
+                    size: product.size,
+                    price: product.price,
+                    costPrice: product.costPrice,
+                    sales: [],
+                    totalAssigned: 0,
+                    totalSold: 0,
+                    totalReturned: 0,
+                    totalProfit: 0
+                };
+                
+                this.operatorStock
+                    .filter(os => os.productId == productId)
+                    .forEach(os => {
+                        const operator = this.operators.find(o => o.id == os.operatorId);
+                        const profit = os.sold * (product.price - product.costPrice);
+                        
+                        report.sales.push({
+                            date: os.date,
+                            operatorId: operator.id,
+                            operatorName: operator.name,
+                            assigned: os.assigned,
+                            sold: os.sold,
+                            returned: os.returned,
+                            profit: profit
+                        });
+                        
+                        report.totalAssigned += os.assigned;
+                        report.totalSold += os.sold;
+                        report.totalReturned += os.returned;
+                        report.totalProfit += profit;
+                    });
+                
+                return report;
+            }
+            
+            getProfitAnalysis() {
+                const report = {
+                    products: [],
+                    totalProfit: 0,
+                    totalSales: 0
+                };
+                
+                this.products.forEach(product => {
+                    const productSales = this.operatorStock
+                        .filter(os => os.productId == product.id)
+                        .reduce((sum, os) => sum + os.sold, 0);
+                    
+                    const productProfit = this.operatorStock
+                        .filter(os => os.productId == product.id)
+                        .reduce((sum, os) => sum + (os.sold * (product.price - product.costPrice)), 0);
+                    
+                    if (productSales > 0) {
+                        report.products.push({
+                            productId: product.id,
+                            productName: product.name,
+                            size: product.size,
+                            price: product.price,
+                            costPrice: product.costPrice,
+                            sales: productSales,
+                            profit: productProfit,
+                            profitPerUnit: product.price - product.costPrice,
+                            profitMargin: ((product.price - product.costPrice) / product.price * 100).toFixed(2) + '%'
+                        });
+                        
+                        report.totalProfit += productProfit;
+                        report.totalSales += productSales;
+                    }
+                });
+                
+                // Sort by profit (descending)
+                report.products.sort((a, b) => b.profit - a.profit);
+                
+                return report;
+            }
+            
+            // Backup methods
+            backupData() {
+                return {
+                    products: this.products,
+                    warehouseStock: this.warehouseStock,
+                    operators: this.operators,
+                    operatorStock: this.operatorStock.map(os => ({ ...os, id: os.id || Date.now() + Math.floor(Math.random() * 1000) })),
+                    transactions: this.transactions
+                };
+            }
+            
+            restoreData(data) {
+                this.products = data.products || this.products;
+                this.warehouseStock = data.warehouseStock || this.warehouseStock;
+                this.operators = data.operators || this.operators;
+                this.operatorStock = data.operatorStock || this.operatorStock;
+                this.transactions = data.transactions || this.transactions;
+                this.saveToLocalStorage();
+            }
+            
+            resetData() {
+                this.products = [];
+                this.warehouseStock = [];
+                this.operators = [];
+                this.operatorStock = [];
+                this.transactions = [];
+                localStorage.removeItem('campaColaWarehouse');
+            }
+        }
+
+        // Initialize the database
+        const db = new WarehouseDB();
+        let currentProductForStockAdd = null;
+
+        // UI Functions
+        function openTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tabs button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            document.querySelector(`.nav-tabs button[onclick="openTab('${tabName}')"]`).classList.add('active');
+            
+            // Refresh the tab content
+            switch(tabName) {
+                case 'dashboard':
+                    refreshDashboard();
+                    break;
+                case 'warehouse':
+                    refreshWarehouse();
+                    break;
+                case 'operators':
+                    refreshOperators();
+                    break;
+                case 'assign':
+                    refreshAssignStock();
+                    break;
+                case 'sales':
+                    refreshSales();
+                    break;
+                case 'reports':
+                    refreshReports();
+                    break;
+            }
+        }
+
+        function refreshDashboard() {
+            // Update stats
+            document.getElementById('total-products').textContent = db.products.length;
+            document.getElementById('warehouse-total').textContent = 
+                db.warehouseStock.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('total-operators').textContent = db.operators.length;
+            
+            const today = new Date().toISOString().split('T')[0];
+            const todaySales = db.operatorStock
+                .filter(os => os.date == today)
+                .reduce((sum, os) => sum + os.sold, 0);
+            document.getElementById('today-sales').textContent = todaySales;
+            
+            const todayProfit = db.operatorStock
+                .filter(os => os.date == today)
+                .reduce((sum, os) => {
+                    const product = db.getProductById(os.productId);
+                    return sum + (os.sold * (product.price - product.costPrice));
+                }, 0);
+            document.getElementById('today-profit').textContent = formatCurrency(todayProfit);
+            
+            // Low stock alerts
+            const lowStockTable = document.getElementById('low-stock-table').querySelector('tbody');
+            lowStockTable.innerHTML = '';
+            
+            db.warehouseStock.forEach(ws => {
+                if (ws.quantity < 20) { // Threshold for low stock
+                    const product = db.getProductById(ws.productId);
+                    const row = lowStockTable.insertRow();
+                    row.innerHTML = `
+                        <td>${product.name}</td>
+                        <td>${product.size}</td>
+                        <td>${ws.quantity}</td>
+                        <td><button class="btn btn-primary" onclick="showAddStockModal(${product.id})">Add Stock</button></td>
+                    `;
+                }
+            });
+            
+            // Recent transactions
+            const transactionsTable = document.getElementById('recent-transactions').querySelector('tbody');
+            transactionsTable.innerHTML = '';
+            
+            const recentTransactions = [...db.transactions]
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                .slice(0, 10);
+                
+            recentTransactions.forEach(tx => {
+                const product = db.getProductById(tx.productId);
+                const operator = tx.operatorId ? db.operators.find(o => o.id == tx.operatorId) : null;
+                
+                const row = transactionsTable.insertRow();
+                row.innerHTML = `
+                    <td>${tx.date}</td>
+                    <td>${tx.type.replace(/_/g, ' ')}</td>
+                    <td>${product ? product.name : 'N/A'}</td>
+                    <td>${tx.quantity}</td>
+                    <td>${operator ? operator.name : 'N/A'}</td>
+                    <td>${tx.profit ? formatCurrency(tx.profit) : 'N/A'}</td>
+                `;
+            });
+        }
+
+        function refreshWarehouse() {
+            const warehouseContainer = document.getElementById('warehouse-products');
+            warehouseContainer.innerHTML = '';
+            
+            db.products.forEach(product => {
+                const stock = db.getWarehouseStock(product.id);
+                const location = db.getWarehouseLocation(product.id);
+                const profitPerUnit = product.price - product.costPrice;
+                
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.innerHTML = `
+                    <h4>${product.name}</h4>
+                    <p><strong>Size:</strong> ${product.size}</p>
+                    <p><strong>Price:</strong> ${formatCurrency(product.price)}</p>
+                    <p><strong>Cost Price:</strong> ${formatCurrency(product.costPrice)}</p>
+                    <p><strong>Profit per Unit:</strong> ${formatCurrency(profitPerUnit)}</p>
+                    <p><strong>Stock:</strong> ${stock}</p>
+                    <p><strong>Location:</strong> ${location}</p>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="showAddStockModal(${product.id})">Add Stock</button>
+                    </div>
+                `;
+                
+                warehouseContainer.appendChild(productCard);
+            });
+        }
+
+        function refreshOperators() {
+            const operatorNameInput = document.getElementById('operator-name');
+            const operatorContactInput = document.getElementById('operator-contact');
+            operatorNameInput.value = '';
+            operatorContactInput.value = '';
+            
+            const operatorsTable = document.getElementById('operators-table').querySelector('tbody');
+            operatorsTable.innerHTML = '';
+            
+            db.operators.forEach(operator => {
+                const assignedStock = db.getOperatorAssignedStock(operator.id);
+                
+                const row = operatorsTable.insertRow();
+                row.innerHTML = `
+                    <td>${operator.id}</td>
+                    <td>${operator.name}</td>
+                    <td>${operator.contact}</td>
+                    <td>${assignedStock}</td>
+                    <td>
+                        <button class="btn btn-danger" onclick="deleteOperator(${operator.id})">Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        function refreshAssignStock() {
+            const operatorSelect = document.getElementById('assign-operator');
+            operatorSelect.innerHTML = '<option value="">Select Operator</option>';
+            db.operators.forEach(operator => {
+                const option = document.createElement('option');
+                option.value = operator.id;
+                option.textContent = operator.name;
+                operatorSelect.appendChild(option);
+            });
+            
+            const productSelect = document.getElementById('assign-product');
+            productSelect.innerHTML = '<option value="">Select Product</option>';
+            db.products.forEach(product => {
+                const stock = db.getWarehouseStock(product.id);
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} (${product.size}) - Stock: ${stock}`;
+                productSelect.appendChild(option);
+            });
+            
+            const assignmentsTable = document.getElementById('assignments-table').querySelector('tbody');
+            assignmentsTable.innerHTML = '';
+            
+            const today = new Date().toISOString().split('T')[0];
+            db.operatorStock
+                .filter(os => os.date == today)
+                .forEach(os => {
+                    const operator = db.operators.find(o => o.id == os.operatorId);
+                    const product = db.getProductById(os.productId);
+                    
+                    const row = assignmentsTable.insertRow();
+                    row.innerHTML = `
+                        <td>${operator.name}</td>
+                        <td>${product.name}</td>
+                        <td>${product.size}</td>
+                        <td>${os.assigned}</td>
+                        <td>${os.sold}</td>
+                        <td>${os.returned}</td>
+                        <td>${os.date}</td>
+                        <td>
+                            <button class="btn btn-danger" onclick="removeAssignment(${os.id || os.productId + '-' + os.operatorId + '-' + os.date})">Remove</button>
+                        </td>
+                    `;
+                });
+        }
+
+        function refreshSales() {
+            const operatorSelect = document.getElementById('sales-operator');
+            operatorSelect.innerHTML = '<option value="">Select Operator</option>';
+            db.operators.forEach(operator => {
+                const option = document.createElement('option');
+                option.value = operator.id;
+                option.textContent = operator.name;
+                operatorSelect.appendChild(option);
+            });
+            
+            const dateInput = document.getElementById('sales-date');
+            dateInput.value = new Date().toISOString().split('T')[0];
+            
+            loadOperatorProducts();
+        }
+
+        function loadOperatorProducts() {
+            const operatorId = document.getElementById('sales-operator').value;
+            const date = document.getElementById('sales-date').value;
+            
+            const container = document.getElementById('sales-products-container');
+            container.innerHTML = '';
+            
+            if (!operatorId) return;
+            
+            const assignments = db.operatorStock.filter(os => 
+                os.operatorId == operatorId && os.date == date
+            );
+            
+            if (assignments.length === 0) {
+                container.innerHTML = '<div class="alert alert-danger">No products assigned to this operator for the selected date.</div>';
+                return;
+            }
+            
+            assignments.forEach(as => {
+                const product = db.getProductById(as.productId);
+                const profitPerUnit = product.price - product.costPrice;
+                const potentialProfit = as.sold * profitPerUnit;
+                
+                const productDiv = document.createElement('div');
+                productDiv.className = 'form-group card';
+                productDiv.style.marginBottom = '10px';
+                productDiv.innerHTML = `
+                    <h4>${product.name} (${product.size})</h4>
+                    <p>Assigned: ${as.assigned}</p>
+                    <label for="sales-${product.id}">Quantity Sold</label>
+                    <input type="number" id="sales-${product.id}" min="0" max="${as.assigned}" value="${as.sold || 0}">
+                    <p>Price: ${formatCurrency(product.price)} | Cost: ${formatCurrency(product.costPrice)} | Profit per Unit: ${formatCurrency(profitPerUnit)}</p>
+                    <p>Potential Profit: <span id="profit-${product.id}">${formatCurrency(potentialProfit)}</span></p>
+                `;
+                
+                const input = productDiv.querySelector(`#sales-${product.id}`);
+                input.addEventListener('input', () => {
+                    const sold = parseInt(input.value) || 0;
+                    document.getElementById(`profit-${product.id}`).textContent = formatCurrency(sold * profitPerUnit);
+                });
+                
+                container.appendChild(productDiv);
+            });
+        }
+
+        function refreshReports() {
+            const reportTypeSelect = document.getElementById('report-type');
+            reportTypeSelect.addEventListener('change', function() {
+                document.getElementById('operator-select-container').style.display = 
+                    this.value === 'operator' ? 'block' : 'none';
+                document.getElementById('product-select-container').style.display = 
+                    this.value === 'product' ? 'block' : 'none';
+            });
+            
+            const operatorSelect = document.getElementById('report-operator');
+            operatorSelect.innerHTML = '<option value="">Select Operator</option>';
+            db.operators.forEach(operator => {
+                const option = document.createElement('option');
+                option.value = operator.id;
+                option.textContent = operator.name;
+                operatorSelect.appendChild(option);
+            });
+            
+            const productSelect = document.getElementById('report-product');
+            productSelect.innerHTML = '<option value="">Select Product</option>';
+            db.products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} (${product.size})`;
+                productSelect.appendChild(option);
+            });
+            
+            document.getElementById('report-date').value = new Date().toISOString().split('T')[0];
+        }
+
+        // Modal Functions
+        function showAddStockModal(productId) {
+            currentProductForStockAdd = productId;
+            const product = db.getProductById(productId);
+            const stock = db.getWarehouseStock(productId);
+            const location = db.getWarehouseLocation(productId);
+            
+            document.getElementById('modal-product-name').value = product.name;
+            document.getElementById('modal-product-size').value = product.size;
+            document.getElementById('modal-current-stock').value = stock;
+            document.getElementById('modal-add-quantity').value = '10';
+            document.getElementById('modal-location').value = location;
+            
+            document.getElementById('addStockModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Action Functions
+        function addStockToWarehouse() {
+            const quantity = parseInt(document.getElementById('modal-add-quantity').value);
+            const location = document.getElementById('modal-location').value.trim();
+            
+            if (!quantity || quantity <= 0) {
+                alert('Please enter a valid quantity');
+                return;
+            }
+            
+            if (!location) {
+                alert('Please enter a location');
+                return;
+            }
+            
+            db.updateWarehouseStock(currentProductForStockAdd, quantity, location);
+            closeModal('addStockModal');
+            
+            refreshWarehouse();
+            refreshDashboard();
+            
+            const message = document.createElement('div');
+            message.className = 'alert alert-success';
+            message.textContent = `Stock added successfully!`;
+            document.getElementById('warehouse').insertBefore(message, document.querySelector('#warehouse .card'));
+            
+            setTimeout(() => message.remove(), 3000);
+        }
+
+        function addOperator() {
+            const name = document.getElementById('operator-name').value.trim();
+            const contact = document.getElementById('operator-contact').value.trim();
+            
+            if (!name) {
+                alert('Please enter operator name');
+                return;
+            }
+            
+            db.addOperator(name, contact);
+            refreshOperators();
+            
+            const message = document.createElement('div');
+            message.className = 'alert alert-success';
+            message.textContent = `Operator "${name}" added successfully!`;
+            document.getElementById('operators').insertBefore(message, document.querySelector('#operators .card'));
+            
+            setTimeout(() => message.remove(), 3000);
+        }
+
+        function deleteOperator(operatorId) {
+            if (confirm('Are you sure you want to delete this operator? All their assigned stock will be returned to warehouse.')) {
+                const operator = db.operators.find(o => o.id == operatorId);
+                db.removeOperator(operatorId);
+                refreshOperators();
+                refreshDashboard();
+                refreshAssignStock();
+                
+                const message = document.createElement('div');
+                message.className = 'alert alert-success';
+                message.textContent = `Operator "${operator.name}" deleted successfully!`;
+                document.getElementById('operators').insertBefore(message, document.querySelector('#operators .card'));
+                
+                setTimeout(() => message.style.display = 'none', 3000);
+            }
+        }
+
+        function assignStock() {
+            const operatorId = parseInt(document.getElementById('assign-operator').value);
+            const productId = parseInt(document.getElementById('assign-product').value);
+            const quantity = parseInt(document.getElementById('assign-quantity').value);
+            
+            if (!operatorId || !productId || !quantity || quantity <= 0) {
+                alert('Please fill all fields with valid values');
+                return;
+            }
+            
+            const success = db.assignStockToOperator(operatorId, productId, quantity);
+            if (success) {
+                refreshAssignStock();
+                document.getElementById('assign-quantity').value = '1';
+                
+                const message = document.createElement('div');
+                message.className = 'alert alert-success';
+                message.textContent = `Stock assigned successfully!`;
+                document.getElementById('assign').insertBefore(message, document.querySelector('#assign .card'));
+                
+                setTimeout(() => message.remove(), 3000);
+                
+                refreshDashboard();
+            } else {
+                alert('Not enough stock in warehouse!');
+            }
+        }
+
+        function removeAssignment(assignmentId) {
+            if (confirm('Are you sure you want to remove this assignment? Unsold stock will be returned to warehouse.')) {
+                const success = db.removeOperatorAssignment(assignmentId);
+                if (success) {
+                    refreshAssignStock();
+                    refreshDashboard();
+                    
+                    const message = document.createElement('div');
+                    message.className = 'alert alert-success';
+                    message.textContent = `Assignment removed successfully!`;
+                    document.getElementById('assign').insertBefore(message, document.querySelector('#assign .card'));
+                    
+                    setTimeout(() => message.remove(), 3000);
+                }
+            }
+        }
+
+        function recordSales() {
+            const operatorId = parseInt(document.getElementById('sales-operator').value);
+            const date = document.getElementById('sales-date').value;
+            
+            if (!operatorId) {
+                alert('Please select an operator');
+                return;
+            }
+            
+            const salesData = [];
+            const productInputs = document.querySelectorAll('#sales-products-container input[type="number"]');
+            
+            productInputs.forEach(input => {
+                const productId = parseInt(input.id.replace('sales-', ''));
+                const sold = parseInt(input.value) || 0;
+                
+                salesData.push({
+                    productId,
+                    sold
+                });
+            });
+            
+            db.recordOperatorSales(operatorId, salesData, date);
+            
+            const message = document.createElement('div');
+            message.className = 'alert alert-success';
+            message.textContent = `Sales recorded successfully!`;
+            document.getElementById('sales').insertBefore(message, document.querySelector('#sales .card'));
+            
+            setTimeout(() => message.style.display = 'none', 3000);
+            
+            refreshDashboard();
+            refreshAssignStock();
+        }
+
+        function generateReport() {
+            const reportType = document.getElementById('report-type').value;
+            const date = document.getElementById('report-date').value;
+            const dateParts = date.split('-');
+            const year = parseInt(dateParts[0]);
+            const month = parseInt(dateParts[1]);
+            
+            let report;
+            
+            switch(reportType) {
+                case 'daily':
+                    report = db.getDailyReport(date);
+                    break;
+                case 'weekly':
+                    // Simple week calculation - would need proper week number handling
+                    const week = Math.ceil(new Date(date).getDate() / 7);
+                    report = db.getWeeklyReport(year, week);
+                    break;
+                case 'monthly':
+                    report = db.getMonthlyReport(year, month);
+                    break;
+                case 'operator':
+                    const operatorId = parseInt(document.getElementById('report-operator').value);
+                    report = db.getOperatorPerformance(operatorId);
+                    break;
+                case 'product':
+                    const productId = parseInt(document.getElementById('report-product').value);
+                    report = db.getProductSales(productId);
+                    break;
+                case 'profit':
+                    report = db.getProfitAnalysis();
+                    break;
+                default:
+                    alert('Invalid report type');
+                    return;
+            }
+            
+            if ((reportType === 'operator' && !report) || (reportType === 'product' && !report)) {
+                alert('No data available for the selected criteria');
+                return;
+            }
+            
+            displayReport(report, reportType);
+        }
+
+        function displayReport(report, reportType) {
+            const reportTable = document.getElementById('report-table');
+            reportTable.innerHTML = '';
+            
+            const thead = document.createElement('thead');
+            const tbody = document.createElement('tbody');
+            reportTable.appendChild(thead);
+            reportTable.appendChild(tbody);
+            
+            switch(reportType) {
+                case 'daily':
+                    thead.innerHTML = `
+                        <tr>
+                            <th>Operator</th>
+                            <th>Product</th>
+                            <th>Size</th>
+                            <th>Assigned</th>
+                            <th>Sold</th>
+                            <th>Returned</th>
+                            <th>Price</th>
+                            <th>Cost</th>
+                            <th>Profit</th>
+                        </tr>
+                    `;
+                    
+                    if (report.operators.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="9">No data available for this date</td></tr>';
+                        break;
+                    }
+                    
+                    report.operators.forEach(operator => {
+                        operator.products.forEach(product => {
+                            const row = tbody.insertRow();
+                            row.innerHTML = `
+                                <td>${operator.operatorName}</td>
+                                <td>${product.productName}</td>
+                                <td>${product.size}</td>
+                                <td>${product.assigned}</td>
+                                <td>${product.sold}</td>
+                                <td>${product.returned}</td>
+                                <td>${formatCurrency(product.price)}</td>
+                                <td>${formatCurrency(product.costPrice)}</td>
+                                <td>${formatCurrency(product.profit)}</td>
+                            `;
+                        });
+                        
+                        // Add subtotal row
+                        const subtotalRow = tbody.insertRow();
+                        subtotalRow.innerHTML = `
+                            <td colspan="3"><strong>${operator.operatorName} Subtotal</strong></td>
+                            <td>${operator.products.reduce((sum, p) => sum + p.assigned, 0)}</td>
+                            <td>${operator.totalSales}</td>
+                            <td>${operator.products.reduce((sum, p) => sum + p.returned, 0)}</td>
+                            <td></td>
+                            <td></td>
+                            <td><strong>${formatCurrency(operator.totalProfit)}</strong></td>
+                        `;
+                    });
+                    
+                    // Add total row
+                    const totalRow = tbody.insertRow();
+                    totalRow.innerHTML = `
+                        <td colspan="3"><strong>TOTAL</strong></td>
+                        <td>${report.operators.reduce((sum, op) => sum + op.products.reduce((s, p) => s + p.assigned, 0), 0)}</td>
+                        <td><strong>${report.totalSales}</strong></td>
+                        <td>${report.operators.reduce((sum, op) => sum + op.products.reduce((s, p) => s + p.returned, 0), 0)}</td>
+                        <td></td>
+                        <td></td>
+                        <td><strong>${formatCurrency(report.totalProfit)}</strong></td>
+                    `;
+                    break;
+                    
+                case 'operator':
+                    thead.innerHTML = `
+                        <tr>
+                            <th>Date</th>
+                            <th>Product</th>
+                            <th>Size</th>
+                            <th>Assigned</th>
+                            <th>Sold</th>
+                            <th>Returned</th>
+                            <th>Price</th>
+                            <th>Cost</th>
+                            <th>Profit</th>
+                        </tr>
+                    `;
+                    
+                    if (report.assignments.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="9">No data available for this operator</td></tr>';
+                        break;
+                    }
+                    
+                    report.assignments.forEach(assignment => {
+                        const row = tbody.insertRow();
+                        row.innerHTML = `
+                            <td>${assignment.date}</td>
+                            <td>${assignment.productName}</td>
+                            <td>${assignment.size}</td>
+                            <td>${assignment.assigned}</td>
+                            <td>${assignment.sold}</td>
+                            <td>${assignment.returned}</td>
+                            <td>${formatCurrency(assignment.price)}</td>
+                            <td>${formatCurrency(assignment.costPrice)}</td>
+                            <td>${formatCurrency(assignment.profit)}</td>
+                        `;
+                    });
+                    
+                    // Add total row
+                    const opTotalRow = tbody.insertRow();
+                    opTotalRow.innerHTML = `
+                        <td colspan="3"><strong>TOTAL</strong></td>
+                        <td>${report.totalAssigned}</td>
+                        <td><strong>${report.totalSold}</strong></td>
+                        <td>${report.totalReturned}</td>
+                        <td></td>
+                        <td></td>
+                        <td><strong>${formatCurrency(report.totalProfit)}</strong></td>
+                    `;
+                    break;
+                    
+                case 'product':
+                    thead.innerHTML = `
+                        <tr>
+                            <th>Date</th>
+                            <th>Operator</th>
+                            <th>Assigned</th>
+                            <th>Sold</th>
+                            <th>Returned</th>
+                            <th>Profit</th>
+                        </tr>
+                    `;
+                    
+                    if (report.sales.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6">No data available for this product</td></tr>';
+                        break;
+                    }
+                    
+                    report.sales.forEach(sale => {
+                        const row = tbody.insertRow();
+                        row.innerHTML = `
+                            <td>${sale.date}</td>
+                            <td>${sale.operatorName}</td>
+                            <td>${sale.assigned}</td>
+                            <td>${sale.sold}</td>
+                            <td>${sale.returned}</td>
+                            <td>${formatCurrency(sale.profit)}</td>
+                        `;
+                    });
+                    
+                    // Add total row
+                    const productTotalRow = tbody.insertRow();
+                    productTotalRow.innerHTML = `
+                        <td colspan="2"><strong>TOTAL</strong></td>
+                        <td>${report.totalAssigned}</td>
+                        <td><strong>${report.totalSold}</strong></td>
+                        <td>${report.totalReturned}</td>
+                        <td><strong>${formatCurrency(report.totalProfit)}</strong></td>
+                    `;
+                    break;
+                    
+                case 'profit':
+                    thead.innerHTML = `
+                        <tr>
+                            <th>Product</th>
+                            <th>Size</th>
+                            <th>Price</th>
+                            <th>Cost</th>
+                            <th>Profit/Unit</th>
+                            <th>Total Sold</th>
+                            <th>Total Profit</th>
+                            <th>Profit Margin</th>
+                        </tr>
+                    `;
+                    
+                    if (report.products.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="8">No sales data available</td></tr>';
+                        break;
+                    }
+                    
+                    report.products.forEach(product => {
+                        const row = tbody.insertRow();
+                        row.innerHTML = `
+                            <td>${product.productName}</td>
+                            <td>${product.size}</td>
+                            <td>${formatCurrency(product.price)}</td>
+                            <td>${formatCurrency(product.costPrice)}</td>
+                            <td>${formatCurrency(product.profitPerUnit)}</td>
+                            <td>${product.sales}</td>
+                            <td>${formatCurrency(product.profit)}</td>
+                            <td>${product.profitMargin}</td>
+                        `;
+                    });
+                    
+                    // Add total row
+                    const profitTotalRow = tbody.insertRow();
+                    profitTotalRow.innerHTML = `
+                        <td colspan="5"><strong>TOTAL</strong></td>
+                        <td><strong>${report.totalSales}</strong></td>
+                        <td><strong>${formatCurrency(report.totalProfit)}</strong></td>
+                        <td></td>
+                    `;
+                    break;
+                    
+                // Other report types would be implemented similarly
+                default:
+                    thead.innerHTML = `
+                        <tr>
+                            <th>Field</th>
+                            <th>Value</th>
+                        </tr>
+                    `;
+                    
+                    for (const [key, value] of Object.entries(report)) {
+                        if (typeof value !== 'object') {
+                            const row = tbody.insertRow();
+                            row.innerHTML = `
+                                <td>${key}</td>
+                                <td>${value}</td>
+                            `;
+                        }
+                    }
+            }
+            
+            document.getElementById('report-results').style.display = 'block';
+        }
+
+        function exportReportToExcel() {
+            const reportTable = document.getElementById('report-table');
+            if (reportTable.rows.length <= 1) {
+                alert('No report data to export');
+                return;
+            }
+            
+            const ws = XLSX.utils.table_to_sheet(reportTable);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Report");
+            
+            const reportType = document.getElementById('report-type').value;
+            const date = document.getElementById('report-date').value;
+            XLSX.writeFile(wb, `CampaCola_${reportType}_Report_${date}.xlsx`);
+        }
+
+        function exportReportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const reportType = document.getElementById('report-type').value;
+            const date = document.getElementById('report-date').value;
+            const title = `Campa Cola ${reportType.replace(/^\w/, c => c.toUpperCase())} Report - ${date}`;
+            
+            doc.text(title, 14, 10);
+            doc.autoTable({
+                html: '#report-table',
+                startY: 20,
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [227, 25, 55] // Campa Cola red
+                }
+            });
+            
+            doc.save(`CampaCola_${reportType}_Report_${date}.pdf`);
+        }
+
+        function exportWarehouseToExcel() {
+            const data = [
+                ['Product', 'Size', 'Price', 'Cost Price', 'Profit per Unit', 'Stock', 'Location']
+            ];
+            
+            db.products.forEach(product => {
+                const stock = db.warehouseStock.find(ws => ws.productId == product.id);
+                data.push([
+                    product.name,
+                    product.size,
+                    product.price,
+                    product.costPrice,
+                    product.price - product.costPrice,
+                    stock ? stock.quantity : 0,
+                    stock ? stock.location : 'N/A'
+                ]);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Warehouse");
+            XLSX.writeFile(wb, "CampaCola_Warehouse_Inventory.xlsx");
+        }
+
+        function exportWarehouseToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const title = "Campa Cola Warehouse Inventory";
+            doc.text(title, 14, 10);
+            
+            const headers = [["Product", "Size", "Price", "Cost Price", "Profit per Unit", "Stock", "Location"]];
+            const data = db.products.map(product => {
+                const stock = db.warehouseStock.find(ws => ws.productId == product.id);
+                return [
+                    product.name,
+                    product.size,
+                    formatCurrency(product.price),
+                    formatCurrency(product.costPrice),
+                    formatCurrency(product.price - product.costPrice),
+                    stock ? stock.quantity : 0,
+                    stock ? stock.location : 'N/A'
+                ];
+            });
+            
+            doc.autoTable({
+                head: headers,
+                body: data,
+                startY: 20,
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [227, 25, 55] // Campa Cola red
+                }
+            });
+            
+            doc.save("CampaCola_Warehouse_Inventory.pdf");
+        }
+
+        // Backup Functions
+        function backupData() {
+            const data = db.backupData();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            saveAs(blob, `CampaCola_Backup_${new Date().toISOString().split('T')[0]}.json`);
+            
+            const message = document.getElementById('backup-message');
+            message.textContent = 'Backup created successfully!';
+            message.style.display = 'block';
+            setTimeout(() => message.style.display = 'none', 3000);
+        }
+
+        function backupToExcel() {
+            const wb = XLSX.utils.book_new();
+            
+            // Products sheet
+            const productsData = db.products.map(p => ({
+                ID: p.id,
+                Name: p.name,
+                Size: p.size,
+                Price: p.price,
+                CostPrice: p.costPrice,
+                ProfitPerUnit: p.price - p.costPrice
+            }));
+            const productsWs = XLSX.utils.json_to_sheet(productsData);
+            XLSX.utils.book_append_sheet(wb, productsWs, "Products");
+            
+            // Warehouse sheet
+            const warehouseData = db.warehouseStock.map(ws => {
+                const product = db.getProductById(ws.productId);
+                return {
+                    ProductID: ws.productId,
+                    ProductName: product.name,
+                    Size: product.size,
+                    Quantity: ws.quantity,
+                    Location: ws.location
+                };
+            });
+            const warehouseWs = XLSX.utils.json_to_sheet(warehouseData);
+            XLSX.utils.book_append_sheet(wb, warehouseWs, "Warehouse");
+            
+            // Operators sheet
+            const operatorsWs = XLSX.utils.json_to_sheet(db.operators);
+            XLSX.utils.book_append_sheet(wb, operatorsWs, "Operators");
+            
+            // Operator Stock sheet
+            const operatorStockData = db.operatorStock.map(os => {
+                const operator = db.operators.find(o => o.id == os.operatorId);
+                const product = db.getProductById(os.productId);
+                return {
+                    Date: os.date,
+                    OperatorID: os.operatorId,
+                    OperatorName: operator.name,
+                    ProductID: os.productId,
+                    ProductName: product.name,
+                    Size: product.size,
+                    Assigned: os.assigned,
+                    Sold: os.sold,
+                    Returned: os.returned
+                };
+            });
+            const operatorStockWs = XLSX.utils.json_to_sheet(operatorStockData);
+            XLSX.utils.book_append_sheet(wb, operatorStockWs, "OperatorStock");
+            
+            // Transactions sheet
+            const transactionsData = db.transactions.map(tx => {
+                const product = db.getProductById(tx.productId);
+                const operator = tx.operatorId ? db.operators.find(o => o.id == tx.operatorId) : null;
+                return {
+                    ID: tx.id,
+                    Type: tx.type,
+                    Date: tx.date,
+                    Timestamp: tx.timestamp,
+                    ProductID: tx.productId,
+                    ProductName: product ? product.name : 'N/A',
+                    OperatorID: tx.operatorId,
+                    OperatorName: operator ? operator.name : 'N/A',
+                    Quantity: tx.quantity,
+                    Returned: tx.returned || 0,
+                    Profit: tx.profit || 0
+                };
+            });
+            const transactionsWs = XLSX.utils.json_to_sheet(transactionsData);
+            XLSX.utils.book_append_sheet(wb, transactionsWs, "Transactions");
+            
+            XLSX.writeFile(wb, `CampaCola_Full_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
+            
+            const message = document.getElementById('backup-message');
+            message.textContent = 'Excel backup created successfully!';
+            message.style.display = 'block';
+            setTimeout(() => message.style.display = 'none', 3000);
+        }
+
+        function restoreData() {
+            const fileInput = document.getElementById('restore-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a backup file first');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let data;
+                    
+                    if (file.name.endsWith('.json')) {
+                        data = JSON.parse(e.target.result);
+                    } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                        const workbook = XLSX.read(e.target.result, { type: 'array' });
+                        
+                        data = {
+                            products: XLSX.utils.sheet_to_json(workbook.Sheets['Products']),
+                            warehouseStock: XLSX.utils.sheet_to_json(workbook.Sheets['Warehouse']).map(ws => ({
+                                productId: ws.ProductID,
+                                quantity: ws.Quantity,
+                                location: ws.Location
+                            })),
+                            operators: XLSX.utils.sheet_to_json(workbook.Sheets['Operators']),
+                            operatorStock: XLSX.utils.sheet_to_json(workbook.Sheets['OperatorStock']).map(os => ({
+                                operatorId: os.OperatorID,
+                                productId: os.ProductID,
+                                assigned: os.Assigned,
+                                sold: os.Sold,
+                                returned: os.Returned,
+                                date: os.Date
+                            })),
+                            transactions: XLSX.utils.sheet_to_json(workbook.Sheets['Transactions'])
+                        };
+                    } else {
+                        throw new Error('Unsupported file format');
+                    }
+                    
+                    if (confirm('Are you sure you want to restore from backup? All current data will be replaced.')) {
+                        db.restoreData(data);
+                        
+                        const message = document.getElementById('backup-message');
+                        message.className = 'alert alert-success';
+                        message.textContent = 'Data restored successfully!';
+                        message.style.display = 'block';
+                        setTimeout(() => message.style.display = 'none', 3000);
+                        
+                        // Refresh all views
+                        openTab('dashboard');
+                    }
+                } catch (error) {
+                    const message = document.getElementById('backup-message');
+                    message.className = 'alert alert-danger';
+                    message.textContent = `Error restoring data: ${error.message}`;
+                    message.style.display = 'block';
+                    setTimeout(() => message.style.display = 'none', 5000);
+                }
+            };
+            
+            if (file.name.endsWith('.json')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function confirmReset() {
+            if (confirm('WARNING: This will delete ALL data. Are you absolutely sure?')) {
+                db.resetData();
+                
+                const message = document.getElementById('backup-message');
+                message.className = 'alert alert-success';
+                message.textContent = 'All data has been reset. The page will now reload.';
+                message.style.display = 'block';
+                
+                setTimeout(() => location.reload(), 2000);
+            }
+        }
+
+        // Initialize the UI
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshDashboard();
+            
+            // Set today's date in all date inputs
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelectorAll('input[type="date"]').forEach(input => {
+                input.value = today;
+            });
+            
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                if (event.target.className === 'modal') {
+                    event.target.style.display = 'none';
+                }
+            };
+        });
+    </script>
+</body>
+</html>
