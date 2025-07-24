@@ -1,0 +1,3202 @@
+[⚠️ Suspicious Content] <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Warehouse Management System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --success: #10B981;
+            --dark: #1F2937;
+            --light: #F9FAFB;
+            --gray: #6B7280;
+            --border: #E5E7EB;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box input {
+            padding: 10px 40px 10px 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            width: 300px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            color: var(--gray);
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 8px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+            gap: 4px;
+        }
+
+        .nav-tab {
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--gray);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-tab:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+        }
+
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .stat-change {
+            font-size: 12px;
+            margin-top: 8px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .stat-change.positive {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .table th {
+            background: var(--primary);
+            color: white;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .table th:first-child {
+            border-top-left-radius: 12px;
+        }
+
+        .table th:last-child {
+            border-top-right-radius: 12px;
+        }
+
+        .table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Product Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .product-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
+        .product-size {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .product-stock {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .stock-high {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .stock-medium {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .stock-low {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .product-details {
+            margin-bottom: 16px;
+        }
+
+        .product-detail {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .product-detail-label {
+            color: var(--gray);
+        }
+
+        .product-detail-value {
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+            padding: 4px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 20px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .search-box input {
+                width: 100%;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .card-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .mb-0 { margin-bottom: 0; }
+        .mb-1 { margin-bottom: 8px; }
+        .mb-2 { margin-bottom: 16px; }
+        .mb-3 { margin-bottom: 24px; }
+        .mt-0 { margin-top: 0; }
+        .mt-1 { margin-top: 8px; }
+        .mt-2 { margin-top: 16px; }
+        .mt-3 { margin-top: 24px; }
+        .hidden { display: none; }
+        .flex { display: flex; }
+        .flex-wrap { flex-wrap: wrap; }
+        .gap-2 { gap: 16px; }
+        .gap-3 { gap: 24px; }
+        .w-full { width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">WM</div>
+                <div>
+                    <h1>WarehousePro</h1>
+                    <p style="font-size: 14px; color: var(--gray); margin: 0;">Advanced Management System</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="search-box">
+                    <input type="text" id="globalSearch" placeholder="Search products, operators, invoices...">
+                    <span class="search-icon">🔍</span>
+                </div>
+                <button class="btn btn-outline" onclick="showNotifications()">
+                    🔔 <span id="notificationCount">0</span>
+                </button>
+                <button class="btn btn-primary" onclick="showQuickActions()">
+                    ⚡ Quick Actions
+                </button>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('dashboard')">
+                📊 Dashboard
+            </button>
+            <button class="nav-tab" onclick="switchTab('operators')">
+                👥 Operators
+            </button>
+            <button class="nav-tab" onclick="switchTab('products')">
+                📦 Products
+            </button>
+            <button class="nav-tab" onclick="switchTab('warehouse')">
+                🏪 Warehouse
+            </button>
+            <button class="nav-tab" onclick="switchTab('sales')">
+                💰 Sales
+            </button>
+            <button class="nav-tab" onclick="switchTab('reports')">
+                📈 Reports
+            </button>
+            <button class="nav-tab" onclick="switchTab('billing')">
+                🧾 AMAX Billing
+            </button>
+            <button class="nav-tab" onclick="switchTab('settings')">
+                ⚙️ Settings
+            </button>
+        </nav>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📦</div>
+                    <div class="stat-value" id="totalProducts">0</div>
+                    <div class="stat-label">Total Products</div>
+                    <div class="stat-change positive" id="productsChange">+0%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value" id="totalStock">0</div>
+                    <div class="stat-label">Total Stock</div>
+                    <div class="stat-change positive" id="stockChange">+0%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value" id="activeOperators">0</div>
+                    <div class="stat-label">Active Operators</div>
+                    <div class="stat-change positive" id="operatorsChange">+0%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-value" id="todaySales">₹0</div>
+                    <div class="stat-label">Today's Sales</div>
+                    <div class="stat-change positive" id="salesChange">+0%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-value" id="todayProfit">₹0</div>
+                    <div class="stat-label">Today's Profit</div>
+                    <div class="stat-change positive" id="profitChange">+0%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-value" id="lowStockCount">0</div>
+                    <div class="stat-label">Low Stock Items</div>
+                    <div class="stat-change negative" id="lowStockChange">0</div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Sales Trend</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Top Products</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="productsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Recent Activity</h3>
+                    <button class="btn btn-outline" onclick="refreshActivity()">🔄 Refresh</button>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Activity</th>
+                                <th>User</th>
+                                <th>Details</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activityTable">
+                            <!-- Activity rows will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Low Stock Alerts -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">⚠️ Low Stock Alerts</h3>
+                    <button class="btn btn-warning" onclick="showAllAlerts()">View All</button>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Current Stock</th>
+                                <th>Minimum Required</th>
+                                <th>Location</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lowStockTable">
+                            <!-- Low stock items will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operators Tab -->
+        <div id="operators" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Operator Management</h3>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" onclick="showAddOperatorModal()">➕ Add Operator</button>
+                        <button class="btn btn-secondary" onclick="exportOperators()">📤 Export</button>
+                    </div>
+                </div>
+
+                <!-- Operator Stats -->
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalOperatorsCount">0</div>
+                        <div class="stat-label">Total Operators</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="activeOperatorsToday">0</div>
+                        <div class="stat-label">Active Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="topPerformerName">-</div>
+                        <div class="stat-label">Top Performer</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgSalesPerOperator">₹0</div>
+                        <div class="stat-label">Avg Sales/Operator</div>
+                    </div>
+                </div>
+
+                <!-- Operators Table -->
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Contact</th>
+                                <th>Assigned Stock</th>
+                                <th>Today's Sales</th>
+                                <th>Total Sales</th>
+                                <th>Performance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="operatorsTable">
+                            <!-- Operators will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Tab -->
+        <div id="products" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Product Management</h3>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" onclick="showAddProductModal()">➕ Add Product</button>
+                        <button class="btn btn-secondary" onclick="exportProducts()">📤 Export</button>
+                    </div>
+                </div>
+
+                <!-- Product Filters -->
+                <div class="form-grid" style="margin-bottom: 24px;">
+                    <div class="form-group">
+                        <label class="form-label">Category Filter</label>
+                        <select class="form-select" id="categoryFilter" onchange="filterProducts()">
+                            <option value="">All Categories</option>
+                            <option value="beverages">Beverages</option>
+                            <option value="snacks">Snacks</option>
+                            <option value="water">Water</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stock Status</label>
+                        <select class="form-select" id="stockFilter" onchange="filterProducts()">
+                            <option value="">All Stock Levels</option>
+                            <option value="high">High Stock (>50)</option>
+                            <option value="medium">Medium Stock (20-50)</option>
+                            <option value="low">Low Stock (<20)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Search Products</label>
+                        <input type="text" class="form-input" id="productSearch" placeholder="Search by name or size..." onkeyup="filterProducts()">
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="product-grid" id="productsGrid">
+                    <!-- Products will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Warehouse Tab -->
+        <div id="warehouse" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Warehouse Inventory</h3>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" onclick="showAddStockModal()">📦 Add Stock</button>
+                        <button class="btn btn-secondary" onclick="exportWarehouse()">📤 Export</button>
+                        <button class="btn btn-warning" onclick="generateStockReport()">📊 Stock Report</button>
+                    </div>
+                </div>
+
+                <!-- Warehouse Stats -->
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalWarehouseValue">₹0</div>
+                        <div class="stat-label">Total Inventory Value</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalWarehouseItems">0</div>
+                        <div class="stat-label">Total Items</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="warehouseLocations">0</div>
+                        <div class="stat-label">Storage Locations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="reorderRequired">0</div>
+                        <div class="stat-label">Reorder Required</div>
+                    </div>
+                </div>
+
+                <!-- Warehouse Inventory -->
+                <div class="product-grid" id="warehouseGrid">
+                    <!-- Warehouse items will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Tab -->
+        <div id="sales" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Sales Management</h3>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" onclick="showRecordSaleModal()">💰 Record Sale</button>
+                        <button class="btn btn-secondary" onclick="showAssignStockModal()">📦 Assign Stock</button>
+                    </div>
+                </div>
+
+                <!-- Sales Stats -->
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value" id="todayTotalSales">₹0</div>
+                        <div class="stat-label">Today's Sales</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="todayTotalProfit">₹0</div>
+                        <div class="stat-label">Today's Profit</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="monthlyTotalSales">₹0</div>
+                        <div class="stat-label">Monthly Sales</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgOrderValue">₹0</div>
+                        <div class="stat-label">Avg Order Value</div>
+                    </div>
+                </div>
+
+                <!-- Sales Filters -->
+                <div class="form-grid" style="margin-bottom: 24px;">
+                    <div class="form-group">
+                        <label class="form-label">Date Range</label>
+                        <input type="date" class="form-input" id="salesFromDate" onchange="filterSales()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">To Date</label>
+                        <input type="date" class="form-input" id="salesToDate" onchange="filterSales()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Operator</label>
+                        <select class="form-select" id="salesOperatorFilter" onchange="filterSales()">
+                            <option value="">All Operators</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Sales Table -->
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Operator</th>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                                <th>Profit</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesTable">
+                            <!-- Sales will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reports" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Reports & Analytics</h3>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" onclick="generateCustomReport()">📊 Custom Report</button>
+                        <button class="btn btn-secondary" onclick="scheduleReport()">⏰ Schedule</button>
+                    </div>
+                </div>
+
+                <!-- Report Types -->
+                <div class="form-grid" style="margin-bottom: 24px;">
+                    <div class="form-group">
+                        <label class="form-label">Report Type</label>
+                        <select class="form-select" id="reportType" onchange="updateReportOptions()">
+                            <option value="daily">Daily Report</option>
+                            <option value="weekly">Weekly Report</option>
+                            <option value="monthly">Monthly Report</option>
+                            <option value="operator">Operator Performance</option>
+                            <option value="product">Product Analysis</option>
+                            <option value="profit">Profit Analysis</option>
+                            <option value="inventory">Inventory Report</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date Range</label>
+                        <input type="date" class="form-input" id="reportFromDate">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">To Date</label>
+                        <input type="date" class="form-input" id="reportToDate">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary w-full" onclick="generateReport()" style="margin-top: 24px;">
+                            📈 Generate Report
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Report Results -->
+                <div id="reportResults" class="hidden">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Report Results</h3>
+                            <div class="card-actions">
+                                <button class="btn btn-secondary" onclick="exportReportPDF()">📄 PDF</button>
+                                <button class="btn btn-secondary" onclick="exportReportExcel()">📊 Excel</button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="table" id="reportTable">
+                                <!-- Report data will be populated here -->
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AMAX Billing Tab -->
+        <div id="billing" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">AMAX Billing System</h3>
+                    <div class="card-actions">
+                        <button class="btn btn-primary" onclick="showCreateInvoiceModal()">🧾 Create Invoice</button>
+                        <button class="btn btn-secondary" onclick="showPaymentModal()">💳 Record Payment</button>
+                    </div>
+                </div>
+
+                <!-- Billing Stats -->
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalInvoices">0</div>
+                        <div class="stat-label">Total Invoices</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="pendingAmount">₹0</div>
+                        <div class="stat-label">Pending Amount</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="paidAmount">₹0</div>
+                        <div class="stat-label">Paid Amount</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="overdueInvoices">0</div>
+                        <div class="stat-label">Overdue Invoices</div>
+                    </div>
+                </div>
+
+                <!-- Invoice Filters -->
+                <div class="form-grid" style="margin-bottom: 24px;">
+                    <div class="form-group">
+                        <label class="form-label">Status Filter</label>
+                        <select class="form-select" id="invoiceStatusFilter" onchange="filterInvoices()">
+                            <option value="">All Invoices</option>
+                            <option value="pending">Pending</option>
+                            <option value="paid">Paid</option>
+                            <option value="overdue">Overdue</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Customer</label>
+                        <input type="text" class="form-input" id="customerFilter" placeholder="Search customer..." onkeyup="filterInvoices()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date Range</label>
+                        <input type="date" class="form-input" id="invoiceDateFilter" onchange="filterInvoices()">
+                    </div>
+                </div>
+
+                <!-- Invoices Table -->
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoicesTable">
+                            <!-- Invoices will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">System Settings</h3>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                    <!-- General Settings -->
+                    <div class="card">
+                        <h4 style="margin-bottom: 16px;">General Settings</h4>
+                        <div class="form-group">
+                            <label class="form-label">Company Name</label>
+                            <input type="text" class="form-input" id="companyName" value="WarehousePro">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Currency</label>
+                            <select class="form-select" id="currency">
+                                <option value="INR">Indian Rupee (₹)</option>
+                                <option value="USD">US Dollar ($)</option>
+                                <option value="EUR">Euro (€)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Low Stock Threshold</label>
+                            <input type="number" class="form-input" id="lowStockThreshold" value="20">
+                        </div>
+                        <button class="btn btn-primary" onclick="saveGeneralSettings()">💾 Save Settings</button>
+                    </div>
+
+                    <!-- Data Management -->
+                    <div class="card">
+                        <h4 style="margin-bottom: 16px;">Data Management</h4>
+                        <div class="form-group">
+                            <button class="btn btn-secondary w-full mb-2" onclick="exportAllData()">
+                                📤 Export All Data
+                            </button>
+                            <button class="btn btn-secondary w-full mb-2" onclick="importData()">
+                                📥 Import Data
+                            </button>
+                            <input type="file" id="importFile" accept=".json,.xlsx" style="display: none;" onchange="handleImport()">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-warning w-full mb-2" onclick="clearOldData()">
+                                🗑️ Clear Old Data
+                            </button>
+                            <button class="btn btn-danger w-full" onclick="resetSystem()">
+                                ⚠️ Reset System
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Notifications -->
+                    <div class="card">
+                        <h4 style="margin-bottom: 16px;">Notifications</h4>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="lowStockNotifications" checked>
+                                Low Stock Alerts
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="salesNotifications" checked>
+                                Daily Sales Summary
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="overdueNotifications" checked>
+                                Overdue Invoice Alerts
+                            </label>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveNotificationSettings()">💾 Save Settings</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add Operator Modal -->
+    <div id="addOperatorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Operator</h3>
+                <button class="modal-close" onclick="closeModal('addOperatorModal')">&times;</button>
+            </div>
+            <form onsubmit="addOperator(event)">
+                <div class="form-group">
+                    <label class="form-label">Operator Name *</label>
+                    <input type="text" class="form-input" id="operatorName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contact Number</label>
+                    <input type="tel" class="form-input" id="operatorContact">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="operatorEmail">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <textarea class="form-input" id="operatorAddress" rows="3"></textarea>
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="btn btn-primary">➕ Add Operator</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('addOperatorModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div id="addProductModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Product</h3>
+                <button class="modal-close" onclick="closeModal('addProductModal')">&times;</button>
+            </div>
+            <form onsubmit="addProduct(event)">
+                <div class="form-group">
+                    <label class="form-label">Product Name *</label>
+                    <input type="text" class="form-input" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Size/Volume *</label>
+                    <input type="text" class="form-input" id="productSize" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select class="form-select" id="productCategory">
+                        <option value="beverages">Beverages</option>
+                        <option value="snacks">Snacks</option>
+                        <option value="water">Water</option>
+                    </select>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Selling Price (₹) *</label>
+                        <input type="number" class="form-input" id="productPrice" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cost Price (₹) *</label>
+                        <input type="number" class="form-input" id="productCostPrice" step="0.01" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Initial Stock</label>
+                    <input type="number" class="form-input" id="productInitialStock" value="0">
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="btn btn-primary">➕ Add Product</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('addProductModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Stock Modal -->
+    <div id="addStockModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Stock</h3>
+                <button class="modal-close" onclick="closeModal('addStockModal')">&times;</button>
+            </div>
+            <form onsubmit="addStock(event)">
+                <div class="form-group">
+                    <label class="form-label">Product *</label>
+                    <select class="form-select" id="stockProductId" required>
+                        <option value="">Select Product</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Quantity *</label>
+                    <input type="number" class="form-input" id="stockQuantity" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input type="text" class="form-input" id="stockLocation" placeholder="e.g., A1, B2, C3">
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="btn btn-primary">📦 Add Stock</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('addStockModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Assign Stock Modal -->
+    <div id="assignStockModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Assign Stock to Operator</h3>
+                <button class="modal-close" onclick="closeModal('assignStockModal')">&times;</button>
+            </div>
+            <form onsubmit="assignStock(event)">
+                <div class="form-group">
+                    <label class="form-label">Operator *</label>
+                    <select class="form-select" id="assignOperatorId" required>
+                        <option value="">Select Operator</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Product *</label>
+                    <select class="form-select" id="assignProductId" required onchange="updateAvailableStock()">
+                        <option value="">Select Product</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Available Stock: <span id="availableStock">0</span></label>
+                    <label class="form-label">Quantity to Assign *</label>
+                    <input type="number" class="form-input" id="assignQuantity" min="1" required>
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="btn btn-primary">📦 Assign Stock</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('assignStockModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Record Sale Modal -->
+    <div id="recordSaleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Record Sale</h3>
+                <button class="modal-close" onclick="closeModal('recordSaleModal')">&times;</button>
+            </div>
+            <form onsubmit="recordSale(event)">
+                <div class="form-group">
+                    <label class="form-label">Operator *</label>
+                    <select class="form-select" id="saleOperatorId" required onchange="loadOperatorStock()">
+                        <option value="">Select Operator</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date *</label>
+                    <input type="date" class="form-input" id="saleDate" required>
+                </div>
+                <div id="operatorStockList">
+                    <!-- Operator's assigned stock will be loaded here -->
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="btn btn-primary">💰 Record Sale</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('recordSaleModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Invoice Modal -->
+    <div id="createInvoiceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create Invoice</h3>
+                <button class="modal-close" onclick="closeModal('createInvoiceModal')">&times;</button>
+            </div>
+            <form onsubmit="createInvoice(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Customer Name *</label>
+                        <input type="text" class="form-input" id="invoiceCustomerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Customer Contact</label>
+                        <input type="text" class="form-input" id="invoiceCustomerContact">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Customer Address</label>
+                    <textarea class="form-input" id="invoiceCustomerAddress" rows="2"></textarea>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Invoice Date *</label>
+                        <input type="date" class="form-input" id="invoiceDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Due Date *</label>
+                        <input type="date" class="form-input" id="invoiceDueDate" required>
+                    </div>
+                </div>
+                
+                <!-- Invoice Items -->
+                <div class="form-group">
+                    <label class="form-label">Invoice Items</label>
+                    <div id="invoiceItems">
+                        <div class="invoice-item" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; margin-bottom: 10px;">
+                            <select class="form-select" name="itemProduct" required>
+                                <option value="">Select Product</option>
+                            </select>
+                            <input type="number" class="form-input" name="itemQuantity" placeholder="Qty" min="1" required>
+                            <input type="number" class="form-input" name="itemPrice" placeholder="Price" step="0.01" required>
+                            <input type="number" class="form-input" name="itemTotal" placeholder="Total" readonly>
+                            <button type="button" class="btn btn-danger" onclick="removeInvoiceItem(this)">🗑️</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline" onclick="addInvoiceItem()">➕ Add Item</button>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Subtotal</label>
+                        <input type="number" class="form-input" id="invoiceSubtotal" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tax (%)</label>
+                        <input type="number" class="form-input" id="invoiceTax" value="0" step="0.01" onchange="calculateInvoiceTotal()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Total Amount</label>
+                        <input type="number" class="form-input" id="invoiceTotal" readonly>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="submit" class="btn btn-primary">🧾 Create Invoice</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('createInvoiceModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let warehouseData = {
+            products: [],
+            operators: [],
+            warehouse: [],
+            operatorStock: [],
+            sales: [],
+            invoices: [],
+            settings: {
+                companyName: 'WarehousePro',
+                currency: 'INR',
+                lowStockThreshold: 20,
+                notifications: {
+                    lowStock: true,
+                    sales: true,
+                    overdue: true
+                }
+            }
+        };
+
+        let charts = {};
+        let currentTab = 'dashboard';
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            initializeDefaultData();
+            switchTab('dashboard');
+            setTodayDate();
+            initializeCharts();
+            startAutoRefresh();
+        });
+
+        // Data Management
+        function loadData() {
+            const savedData = localStorage.getItem('warehouseProData');
+            if (savedData) {
+                warehouseData = { ...warehouseData, ...JSON.parse(savedData) };
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('warehouseProData', JSON.stringify(warehouseData));
+        }
+
+        function initializeDefaultData() {
+            if (warehouseData.products.length === 0) {
+                warehouseData.products = [
+                    { id: 1, name: 'Campa Cola', size: '200ml', category: 'beverages', price: 22, costPrice: 19.8 },
+                    { id: 2, name: 'Power Up', size: '200ml', category: 'beverages', price: 22, costPrice: 19.8 },
+                    { id: 3, name: 'Orange Drink', size: '200ml', category: 'beverages', price: 22, costPrice: 19.8 },
+                    { id: 4, name: 'Campa Soda', size: '500ml', category: 'beverages', price: 26, costPrice: 22 },
+                    { id: 5, name: 'Campa Cola', size: '500ml', category: 'beverages', price: 36, costPrice: 32 },
+                    { id: 6, name: 'Orange Drink', size: '500ml', category: 'beverages', price: 36, costPrice: 32 },
+                    { id: 7, name: 'Gold Boost Tin', size: 'Can', category: 'beverages', price: 58, costPrice: 55 },
+                    { id: 8, name: 'Berry Kick', size: '200ml', category: 'beverages', price: 22, costPrice: 18 },
+                    { id: 9, name: 'Lemon Drink', size: '200ml', category: 'beverages', price: 22, costPrice: 19.8 },
+                    { id: 10, name: 'Independence Water', size: '750ml', category: 'water', price: 15, costPrice: 12.8 }
+                ];
+
+                warehouseData.warehouse = warehouseData.products.map(product => ({
+                    productId: product.id,
+                    quantity: Math.floor(Math.random() * 100) + 50,
+                    location: `A${Math.floor(Math.random() * 10) + 1}`
+                }));
+
+                // Add some sample operators
+                warehouseData.operators = [
+                    { id: 1, name: 'Rajesh Kumar', contact: '9876543210', email: 'rajesh@example.com', address: 'Delhi' },
+                    { id: 2, name: 'Priya Sharma', contact: '9876543211', email: 'priya@example.com', address: 'Mumbai' },
+                    { id: 3, name: 'Amit Singh', contact: '9876543212', email: 'amit@example.com', address: 'Bangalore' }
+                ];
+
+                saveData();
+            }
+        }
+
+        // Tab Management
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+
+            currentTab = tabName;
+
+            // Load tab-specific data
+            switch(tabName) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'operators':
+                    loadOperators();
+                    break;
+                case 'products':
+                    loadProducts();
+                    break;
+                case 'warehouse':
+                    loadWarehouse();
+                    break;
+                case 'sales':
+                    loadSales();
+                    break;
+                case 'reports':
+                    loadReports();
+                    break;
+                case 'billing':
+                    loadBilling();
+                    break;
+                case 'settings':
+                    loadSettings();
+                    break;
+            }
+        }
+
+        // Dashboard Functions
+        function loadDashboard() {
+            updateDashboardStats();
+            updateCharts();
+            loadRecentActivity();
+            loadLowStockAlerts();
+        }
+
+        function updateDashboardStats() {
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Total Products
+            document.getElementById('totalProducts').textContent = warehouseData.products.length;
+            
+            // Total Stock
+            const totalStock = warehouseData.warehouse.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('totalStock').textContent = totalStock;
+            
+            // Active Operators
+            document.getElementById('activeOperators').textContent = warehouseData.operators.length;
+            
+            // Today's Sales
+            const todaySales = warehouseData.sales
+                .filter(sale => sale.date === today)
+                .reduce((sum, sale) => sum + (sale.quantity * sale.price), 0);
+            document.getElementById('todaySales').textContent = `₹${todaySales.toFixed(2)}`;
+            
+            // Today's Profit
+            const todayProfit = warehouseData.sales
+                .filter(sale => sale.date === today)
+                .reduce((sum, sale) => {
+                    const product = warehouseData.products.find(p => p.id === sale.productId);
+                    return sum + (sale.quantity * (sale.price - product.costPrice));
+                }, 0);
+            document.getElementById('todayProfit').textContent = `₹${todayProfit.toFixed(2)}`;
+            
+            // Low Stock Count
+            const lowStockCount = warehouseData.warehouse.filter(item => 
+                item.quantity < warehouseData.settings.lowStockThreshold
+            ).length;
+            document.getElementById('lowStockCount').textContent = lowStockCount;
+        }
+
+        function initializeCharts() {
+            // Sales Chart
+            const salesCtx = document.getElementById('salesChart').getContext('2d');
+            charts.sales = new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Daily Sales',
+                        data: [],
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Products Chart
+            const productsCtx = document.getElementById('productsChart').getContext('2d');
+            charts.products = new Chart(productsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#3B82F6',
+                            '#10B981',
+                            '#F59E0B',
+                            '#EF4444',
+                            '#8B5CF6',
+                            '#06B6D4'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            // Update Sales Chart
+            const last7Days = [];
+            const salesData = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                last7Days.push(date.toLocaleDateString());
+                
+                const daySales = warehouseData.sales
+                    .filter(sale => sale.date === dateStr)
+                    .reduce((sum, sale) => sum + (sale.quantity * sale.price), 0);
+                salesData.push(daySales);
+            }
+            
+            charts.sales.data.labels = last7Days;
+            charts.sales.data.datasets[0].data = salesData;
+            charts.sales.update();
+
+            // Update Products Chart
+            const productSales = {};
+            warehouseData.sales.forEach(sale => {
+                const product = warehouseData.products.find(p => p.id === sale.productId);
+                if (product) {
+                    productSales[product.name] = (productSales[product.name] || 0) + sale.quantity;
+                }
+            });
+
+            const topProducts = Object.entries(productSales)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 6);
+
+            charts.products.data.labels = topProducts.map(([name]) => name);
+            charts.products.data.datasets[0].data = topProducts.map(([,quantity]) => quantity);
+            charts.products.update();
+        }
+
+        function loadRecentActivity() {
+            const activityTable = document.getElementById('activityTable');
+            activityTable.innerHTML = '';
+
+            // Generate sample activity data
+            const activities = [
+                { time: '10:30 AM', activity: 'Stock Added', user: 'Admin', details: 'Campa Cola 200ml - 50 units', status: 'success' },
+                { time: '09:15 AM', activity: 'Sale Recorded', user: 'Rajesh Kumar', details: 'Orange Drink 500ml - 5 units', status: 'success' },
+                { time: '08:45 AM', activity: 'Low Stock Alert', user: 'System', details: 'Berry Kick 200ml - 15 units remaining', status: 'warning' },
+                { time: '08:30 AM', activity: 'Operator Added', user: 'Admin', details: 'New operator: Priya Sharma', status: 'info' }
+            ];
+
+            activities.forEach(activity => {
+                const row = activityTable.insertRow();
+                row.innerHTML = `
+                    <td>${activity.time}</td>
+                    <td>${activity.activity}</td>
+                    <td>${activity.user}</td>
+                    <td>${activity.details}</td>
+                    <td><span class="stat-change ${activity.status === 'success' ? 'positive' : activity.status === 'warning' ? 'negative' : ''}">${activity.status}</span></td>
+                `;
+            });
+        }
+
+        function loadLowStockAlerts() {
+            const lowStockTable = document.getElementById('lowStockTable');
+            lowStockTable.innerHTML = '';
+
+            warehouseData.warehouse.forEach(item => {
+                if (item.quantity < warehouseData.settings.lowStockThreshold) {
+                    const product = warehouseData.products.find(p => p.id === item.productId);
+                    if (product) {
+                        const row = lowStockTable.insertRow();
+                        row.innerHTML = `
+                            <td>${product.name} (${product.size})</td>
+                            <td>${item.quantity}</td>
+                            <td>${warehouseData.settings.lowStockThreshold}</td>
+                            <td>${item.location}</td>
+                            <td>
+                                <button class="btn btn-primary" onclick="showAddStockModal(${product.id})">
+                                    📦 Add Stock
+                                </button>
+                            </td>
+                        `;
+                    }
+                }
+            });
+
+            if (lowStockTable.children.length === 0) {
+                const row = lowStockTable.insertRow();
+                row.innerHTML = '<td colspan="5" class="text-center">No low stock items</td>';
+            }
+        }
+
+        // Operators Functions
+        function loadOperators() {
+            updateOperatorStats();
+            populateOperatorsTable();
+        }
+
+        function updateOperatorStats() {
+            document.getElementById('totalOperatorsCount').textContent = warehouseData.operators.length;
+            
+            const today = new Date().toISOString().split('T')[0];
+            const activeToday = warehouseData.sales
+                .filter(sale => sale.date === today)
+                .map(sale => sale.operatorId)
+                .filter((id, index, arr) => arr.indexOf(id) === index).length;
+            document.getElementById('activeOperatorsToday').textContent = activeToday;
+
+            // Top performer
+            const operatorSales = {};
+            warehouseData.sales.forEach(sale => {
+                operatorSales[sale.operatorId] = (operatorSales[sale.operatorId] || 0) + (sale.quantity * sale.price);
+            });
+            
+            const topPerformer = Object.entries(operatorSales)
+                .sort(([,a], [,b]) => b - a)[0];
+            
+            if (topPerformer) {
+                const operator = warehouseData.operators.find(op => op.id == topPerformer[0]);
+                document.getElementById('topPerformerName').textContent = operator ? operator.name : '-';
+            }
+
+            // Average sales per operator
+            const totalSales = Object.values(operatorSales).reduce((sum, sales) => sum + sales, 0);
+            const avgSales = warehouseData.operators.length > 0 ? totalSales / warehouseData.operators.length : 0;
+            document.getElementById('avgSalesPerOperator').textContent = `₹${avgSales.toFixed(2)}`;
+        }
+
+        function populateOperatorsTable() {
+            const operatorsTable = document.getElementById('operatorsTable');
+            operatorsTable.innerHTML = '';
+
+            warehouseData.operators.forEach(operator => {
+                const assignedStock = warehouseData.operatorStock
+                    .filter(stock => stock.operatorId === operator.id)
+                    .reduce((sum, stock) => sum + stock.quantity, 0);
+
+                const todaySales = warehouseData.sales
+                    .filter(sale => sale.operatorId === operator.id && sale.date === new Date().toISOString().split('T')[0])
+                    .reduce((sum, sale) => sum + (sale.quantity * sale.price), 0);
+
+                const totalSales = warehouseData.sales
+                    .filter(sale => sale.operatorId === operator.id)
+                    .reduce((sum, sale) => sum + (sale.quantity * sale.price), 0);
+
+                const performance = totalSales > 1000 ? 'Excellent' : totalSales > 500 ? 'Good' : 'Average';
+
+                const row = operatorsTable.insertRow();
+                row.innerHTML = `
+                    <td>${operator.id}</td>
+                    <td>${operator.name}</td>
+                    <td>${operator.contact || '-'}</td>
+                    <td>${assignedStock}</td>
+                    <td>₹${todaySales.toFixed(2)}</td>
+                    <td>₹${totalSales.toFixed(2)}</td>
+                    <td><span class="stat-change ${performance === 'Excellent' ? 'positive' : ''}">${performance}</span></td>
+                    <td>
+                        <button class="btn btn-primary" onclick="viewOperatorDetails(${operator.id})">👁️</button>
+                        <button class="btn btn-danger" onclick="deleteOperator(${operator.id})">🗑️</button>
+                    </td>
+                `;
+            });
+        }
+
+        function showAddOperatorModal() {
+            document.getElementById('addOperatorModal').classList.add('active');
+        }
+
+        function addOperator(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('operatorName').value;
+            const contact = document.getElementById('operatorContact').value;
+            const email = document.getElementById('operatorEmail').value;
+            const address = document.getElementById('operatorAddress').value;
+
+            const newOperator = {
+                id: Date.now(),
+                name,
+                contact,
+                email,
+                address
+            };
+
+            warehouseData.operators.push(newOperator);
+            saveData();
+            
+            closeModal('addOperatorModal');
+            loadOperators();
+            showAlert('Operator added successfully!', 'success');
+        }
+
+        function deleteOperator(operatorId) {
+            if (confirm('Are you sure you want to delete this operator?')) {
+                warehouseData.operators = warehouseData.operators.filter(op => op.id !== operatorId);
+                warehouseData.operatorStock = warehouseData.operatorStock.filter(stock => stock.operatorId !== operatorId);
+                saveData();
+                loadOperators();
+                showAlert('Operator deleted successfully!', 'success');
+            }
+        }
+
+        // Products Functions
+        function loadProducts() {
+            populateProductsGrid();
+        }
+
+        function populateProductsGrid() {
+            const productsGrid = document.getElementById('productsGrid');
+            productsGrid.innerHTML = '';
+
+            let filteredProducts = [...warehouseData.products];
+
+            // Apply filters
+            const categoryFilter = document.getElementById('categoryFilter')?.value;
+            const stockFilter = document.getElementById('stockFilter')?.value;
+            const searchFilter = document.getElementById('productSearch')?.value.toLowerCase();
+
+            if (categoryFilter) {
+                filteredProducts = filteredProducts.filter(product => product.category === categoryFilter);
+            }
+
+            if (searchFilter) {
+                filteredProducts = filteredProducts.filter(product => 
+                    product.name.toLowerCase().includes(searchFilter) || 
+                    product.size.toLowerCase().includes(searchFilter)
+                );
+            }
+
+            if (stockFilter) {
+                filteredProducts = filteredProducts.filter(product => {
+                    const stock = warehouseData.warehouse.find(w => w.productId === product.id)?.quantity || 0;
+                    switch(stockFilter) {
+                        case 'high': return stock > 50;
+                        case 'medium': return stock >= 20 && stock <= 50;
+                        case 'low': return stock < 20;
+                        default: return true;
+                    }
+                });
+            }
+
+            filteredProducts.forEach(product => {
+                const warehouseItem = warehouseData.warehouse.find(w => w.productId === product.id);
+                const stock = warehouseItem?.quantity || 0;
+                const location = warehouseItem?.location || 'N/A';
+                const profit = product.price - product.costPrice;
+
+                let stockClass = 'stock-high';
+                if (stock < 20) stockClass = 'stock-low';
+                else if (stock < 50) stockClass = 'stock-medium';
+
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.innerHTML = `
+                    <div class="product-header">
+                        <div>
+                            <div class="product-name">${product.name}</div>
+                            <div class="product-size">${product.size}</div>
+                        </div>
+                        <div class="product-stock ${stockClass}">${stock} units</div>
+                    </div>
+                    <div class="product-details">
+                        <div class="product-detail">
+                            <span class="product-detail-label">Selling Price:</span>
+                            <span class="product-detail-value">₹${product.price}</span>
+                        </div>
+                        <div class="product-detail">
+                            <span class="product-detail-label">Cost Price:</span>
+                            <span class="product-detail-value">₹${product.costPrice}</span>
+                        </div>
+                        <div class="product-detail">
+                            <span class="product-detail-label">Profit:</span>
+                            <span class="product-detail-value">₹${profit.toFixed(2)}</span>
+                        </div>
+                        <div class="product-detail">
+                            <span class="product-detail-label">Location:</span>
+                            <span class="product-detail-value">${location}</span>
+                        </div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn btn-primary" onclick="showAddStockModal(${product.id})">📦 Add Stock</button>
+                        <button class="btn btn-secondary" onclick="editProduct(${product.id})">✏️ Edit</button>
+                        <button class="btn btn-danger" onclick="deleteProduct(${product.id})">🗑️</button>
+                    </div>
+                `;
+                productsGrid.appendChild(productCard);
+            });
+        }
+
+        function filterProducts() {
+            populateProductsGrid();
+        }
+
+        function showAddProductModal() {
+            document.getElementById('addProductModal').classList.add('active');
+        }
+
+        function addProduct(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('productName').value;
+            const size = document.getElementById('productSize').value;
+            const category = document.getElementById('productCategory').value;
+            const price = parseFloat(document.getElementById('productPrice').value);
+            const costPrice = parseFloat(document.getElementById('productCostPrice').value);
+            const initialStock = parseInt(document.getElementById('productInitialStock').value) || 0;
+
+            const newProduct = {
+                id: Date.now(),
+                name,
+                size,
+                category,
+                price,
+                costPrice
+            };
+
+            warehouseData.products.push(newProduct);
+            
+            if (initialStock > 0) {
+                warehouseData.warehouse.push({
+                    productId: newProduct.id,
+                    quantity: initialStock,
+                    location: 'NEW'
+                });
+            }
+
+            saveData();
+            closeModal('addProductModal');
+            loadProducts();
+            showAlert('Product added successfully!', 'success');
+        }
+
+        function deleteProduct(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                warehouseData.products = warehouseData.products.filter(p => p.id !== productId);
+                warehouseData.warehouse = warehouseData.warehouse.filter(w => w.productId !== productId);
+                saveData();
+                loadProducts();
+                showAlert('Product deleted successfully!', 'success');
+            }
+        }
+
+        // Warehouse Functions
+        function loadWarehouse() {
+            updateWarehouseStats();
+            populateWarehouseGrid();
+        }
+
+        function updateWarehouseStats() {
+            const totalValue = warehouseData.warehouse.reduce((sum, item) => {
+                const product = warehouseData.products.find(p => p.id === item.productId);
+                return sum + (item.quantity * (product?.costPrice || 0));
+            }, 0);
+            document.getElementById('totalWarehouseValue').textContent = `₹${totalValue.toFixed(2)}`;
+
+            const totalItems = warehouseData.warehouse.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('totalWarehouseItems').textContent = totalItems;
+
+            const locations = [...new Set(warehouseData.warehouse.map(item => item.location))].length;
+            document.getElementById('warehouseLocations').textContent = locations;
+
+            const reorderRequired = warehouseData.warehouse.filter(item => 
+                item.quantity < warehouseData.settings.lowStockThreshold
+            ).length;
+            document.getElementById('reorderRequired').textContent = reorderRequired;
+        }
+
+        function populateWarehouseGrid() {
+            const warehouseGrid = document.getElementById('warehouseGrid');
+            warehouseGrid.innerHTML = '';
+
+            warehouseData.warehouse.forEach(item => {
+                const product = warehouseData.products.find(p => p.id === item.productId);
+                if (!product) return;
+
+                let stockClass = 'stock-high';
+                if (item.quantity < 20) stockClass = 'stock-low';
+                else if (item.quantity < 50) stockClass = 'stock-medium';
+
+                const warehouseCard = document.createElement('div');
+                warehouseCard.className = 'product-card';
+                warehouseCard.innerHTML = `
+                    <div class="product-header">
+                        <div>
+                            <div class="product-name">${product.name}</div>
+                            <div class="product-size">${product.size}</div>
+                        </div>
+                        <div class="product-stock ${stockClass}">${item.quantity} units</div>
+                    </div>
+                    <div class="product-details">
+                        <div class="product-detail">
+                            <span class="product-detail-label">Location:</span>
+                            <span class="product-detail-value">${item.location}</span>
+                        </div>
+                        <div class="product-detail">
+                            <span class="product-detail-label">Value:</span>
+                            <span class="product-detail-value">₹${(item.quantity * product.costPrice).toFixed(2)}</span>
+                        </div>
+                        <div class="product-detail">
+                            <span class="product-detail-label">Unit Cost:</span>
+                            <span class="product-detail-value">₹${product.costPrice}</span>
+                        </div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="btn btn-primary" onclick="showAddStockModal(${product.id})">📦 Add Stock</button>
+                        <button class="btn btn-secondary" onclick="moveStock(${product.id})">📍 Move</button>
+                    </div>
+                `;
+                warehouseGrid.appendChild(warehouseCard);
+            });
+        }
+
+        function showAddStockModal(productId = null) {
+            const modal = document.getElementById('addStockModal');
+            const productSelect = document.getElementById('stockProductId');
+            
+            // Populate product dropdown
+            productSelect.innerHTML = '<option value="">Select Product</option>';
+            warehouseData.products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} (${product.size})`;
+                if (productId && product.id === productId) {
+                    option.selected = true;
+                }
+                productSelect.appendChild(option);
+            });
+
+            modal.classList.add('active');
+        }
+
+        function addStock(event) {
+            event.preventDefault();
+            
+            const productId = parseInt(document.getElementById('stockProductId').value);
+            const quantity = parseInt(document.getElementById('stockQuantity').value);
+            const location = document.getElementById('stockLocation').value || 'A1';
+
+            const existingStock = warehouseData.warehouse.find(w => w.productId === productId);
+            
+            if (existingStock) {
+                existingStock.quantity += quantity;
+                if (location) existingStock.location = location;
+            } else {
+                warehouseData.warehouse.push({
+                    productId,
+                    quantity,
+                    location
+                });
+            }
+
+            saveData();
+            closeModal('addStockModal');
+            loadWarehouse();
+            loadDashboard();
+            showAlert('Stock added successfully!', 'success');
+        }
+
+        // Sales Functions
+        function loadSales() {
+            updateSalesStats();
+            populateSalesFilters();
+            populateSalesTable();
+        }
+
+        function updateSalesStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const thisMonth = new Date().toISOString().substring(0, 7);
+
+            const todayTotalSales = warehouseData.sales
+                .filter(sale => sale.date === today)
+                .reduce((sum, sale) => sum + (sale.quantity * sale.price), 0);
+            document.getElementById('todayTotalSales').textContent = `₹${todayTotalSales.toFixed(2)}`;
+
+            const todayTotalProfit = warehouseData.sales
+                .filter(sale => sale.date === today)
+                .reduce((sum, sale) => {
+                    const product = warehouseData.products.find(p => p.id === sale.productId);
+                    return sum + (sale.quantity * (sale.price - product.costPrice));
+                }, 0);
+            document.getElementById('todayTotalProfit').textContent = `₹${todayTotalProfit.toFixed(2)}`;
+
+            const monthlyTotalSales = warehouseData.sales
+                .filter(sale => sale.date.startsWith(thisMonth))
+                .reduce((sum, sale) => sum + (sale.quantity * sale.price), 0);
+            document.getElementById('monthlyTotalSales').textContent = `₹${monthlyTotalSales.toFixed(2)}`;
+
+            const avgOrderValue = warehouseData.sales.length > 0 ? 
+                warehouseData.sales.reduce((sum, sale) => sum + (sale.quantity * sale.price), 0) / warehouseData.sales.length : 0;
+            document.getElementById('avgOrderValue').textContent = `₹${avgOrderValue.toFixed(2)}`;
+        }
+
+        function populateSalesFilters() {
+            const operatorFilter = document.getElementById('salesOperatorFilter');
+            operatorFilter.innerHTML = '<option value="">All Operators</option>';
+            
+            warehouseData.operators.forEach(operator => {
+                const option = document.createElement('option');
+                option.value = operator.id;
+                option.textContent = operator.name;
+                operatorFilter.appendChild(option);
+            });
+        }
+
+        function populateSalesTable() {
+            const salesTable = document.getElementById('salesTable');
+            salesTable.innerHTML = '';
+
+            let filteredSales = [...warehouseData.sales];
+
+            // Apply filters
+            const fromDate = document.getElementById('salesFromDate')?.value;
+            const toDate = document.getElementById('salesToDate')?.value;
+            const operatorFilter = document.getElementById('salesOperatorFilter')?.value;
+
+            if (fromDate) {
+                filteredSales = filteredSales.filter(sale => sale.date >= fromDate);
+            }
+            if (toDate) {
+                filteredSales = filteredSales.filter(sale => sale.date <= toDate);
+            }
+            if (operatorFilter) {
+                filteredSales = filteredSales.filter(sale => sale.operatorId == operatorFilter);
+            }
+
+            filteredSales.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            filteredSales.forEach(sale => {
+                const product = warehouseData.products.find(p => p.id === sale.productId);
+                const operator = warehouseData.operators.find(op => op.id === sale.operatorId);
+                const total = sale.quantity * sale.price;
+                const profit = sale.quantity * (sale.price - product.costPrice);
+
+                const row = salesTable.insertRow();
+                row.innerHTML = `
+                    <td>${new Date(sale.date).toLocaleDateString()}</td>
+                    <td>${operator?.name || 'Unknown'}</td>
+                    <td>${product?.name} (${product?.size})</td>
+                    <td>${sale.quantity}</td>
+                    <td>₹${sale.price}</td>
+                    <td>₹${total.toFixed(2)}</td>
+                    <td>₹${profit.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-danger" onclick="deleteSale(${sale.id})">🗑️</button>
+                    </td>
+                `;
+            });
+        }
+
+        function filterSales() {
+            populateSalesTable();
+        }
+
+        function showRecordSaleModal() {
+            const modal = document.getElementById('recordSaleModal');
+            const operatorSelect = document.getElementById('saleOperatorId');
+            
+            // Populate operator dropdown
+            operatorSelect.innerHTML = '<option value="">Select Operator</option>';
+            warehouseData.operators.forEach(operator => {
+                const option = document.createElement('option');
+                option.value = operator.id;
+                option.textContent = operator.name;
+                operatorSelect.appendChild(option);
+            });
+
+            // Set today's date
+            document.getElementById('saleDate').value = new Date().toISOString().split('T')[0];
+
+            modal.classList.add('active');
+        }
+
+        function loadOperatorStock() {
+            const operatorId = parseInt(document.getElementById('saleOperatorId').value);
+            const stockList = document.getElementById('operatorStockList');
+            
+            stockList.innerHTML = '';
+
+            if (!operatorId) return;
+
+            const operatorStock = warehouseData.operatorStock.filter(stock => stock.operatorId === operatorId);
+
+            if (operatorStock.length === 0) {
+                stockList.innerHTML = '<div class="alert alert-warning">No stock assigned to this operator</div>';
+                return;
+            }
+
+            operatorStock.forEach(stock => {
+                const product = warehouseData.products.find(p => p.id === stock.productId);
+                if (!product) return;
+
+                const stockDiv = document.createElement('div');
+                stockDiv.className = 'form-group';
+                stockDiv.innerHTML = `
+                    <label class="form-label">${product.name} (${product.size}) - Available: ${stock.quantity}</label>
+                    <input type="number" class="form-input" name="saleQuantity" data-product-id="${product.id}" 
+                           max="${stock.quantity}" min="0" placeholder="Quantity sold">
+                `;
+                stockList.appendChild(stockDiv);
+            });
+        }
+
+        function recordSale(event) {
+            event.preventDefault();
+            
+            const operatorId = parseInt(document.getElementById('saleOperatorId').value);
+            const date = document.getElementById('saleDate').value;
+            const quantityInputs = document.querySelectorAll('input[name="saleQuantity"]');
+
+            quantityInputs.forEach(input => {
+                const quantity = parseInt(input.value) || 0;
+                if (quantity > 0) {
+                    const productId = parseInt(input.dataset.productId);
+                    const product = warehouseData.products.find(p => p.id === productId);
+
+                    const sale = {
+                        id: Date.now() + Math.random(),
+                        operatorId,
+                        productId,
+                        quantity,
+                        price: product.price,
+                        date,
+                        timestamp: new Date().toISOString()
+                    };
+
+                    warehouseData.sales.push(sale);
+
+                    // Update operator stock
+                    const operatorStock = warehouseData.operatorStock.find(
+                        stock => stock.operatorId === operatorId && stock.productId === productId
+                    );
+                    if (operatorStock) {
+                        operatorStock.quantity -= quantity;
+                        if (operatorStock.quantity <= 0) {
+                            warehouseData.operatorStock = warehouseData.operatorStock.filter(
+                                stock => !(stock.operatorId === operatorId && stock.productId === productId)
+                            );
+                        }
+                    }
+                }
+            });
+
+            saveData();
+            closeModal('recordSaleModal');
+            loadSales();
+            loadDashboard();
+            showAlert('Sale recorded successfully!', 'success');
+        }
+
+        function showAssignStockModal() {
+            const modal = document.getElementById('assignStockModal');
+            const operatorSelect = document.getElementById('assignOperatorId');
+            const productSelect = document.getElementById('assignProductId');
+            
+            // Populate operator dropdown
+            operatorSelect.innerHTML = '<option value="">Select Operator</option>';
+            warehouseData.operators.forEach(operator => {
+                const option = document.createElement('option');
+                option.value = operator.id;
+                option.textContent = operator.name;
+                operatorSelect.appendChild(option);
+            });
+
+            // Populate product dropdown
+            productSelect.innerHTML = '<option value="">Select Product</option>';
+            warehouseData.products.forEach(product => {
+                const warehouseItem = warehouseData.warehouse.find(w => w.productId === product.id);
+                if (warehouseItem && warehouseItem.quantity > 0) {
+                    const option = document.createElement('option');
+                    option.value = product.id;
+                    option.textContent = `${product.name} (${product.size}) - Available: ${warehouseItem.quantity}`;
+                    productSelect.appendChild(option);
+                }
+            });
+
+            modal.classList.add('active');
+        }
+
+        function updateAvailableStock() {
+            const productId = parseInt(document.getElementById('assignProductId').value);
+            const availableStockSpan = document.getElementById('availableStock');
+            
+            if (productId) {
+                const warehouseItem = warehouseData.warehouse.find(w => w.productId === productId);
+                availableStockSpan.textContent = warehouseItem ? warehouseItem.quantity : 0;
+            } else {
+                availableStockSpan.textContent = 0;
+            }
+        }
+
+        function assignStock(event) {
+            event.preventDefault();
+            
+            const operatorId = parseInt(document.getElementById('assignOperatorId').value);
+            const productId = parseInt(document.getElementById('assignProductId').value);
+            const quantity = parseInt(document.getElementById('assignQuantity').value);
+
+            // Check if enough stock is available
+            const warehouseItem = warehouseData.warehouse.find(w => w.productId === productId);
+            if (!warehouseItem || warehouseItem.quantity < quantity) {
+                showAlert('Not enough stock available!', 'danger');
+                return;
+            }
+
+            // Reduce warehouse stock
+            warehouseItem.quantity -= quantity;
+
+            // Add to operator stock
+            const existingOperatorStock = warehouseData.operatorStock.find(
+                stock => stock.operatorId === operatorId && stock.productId === productId
+            );
+
+            if (existingOperatorStock) {
+                existingOperatorStock.quantity += quantity;
+            } else {
+                warehouseData.operatorStock.push({
+                    operatorId,
+                    productId,
+                    quantity,
+                    assignedDate: new Date().toISOString().split('T')[0]
+                });
+            }
+
+            saveData();
+            closeModal('assignStockModal');
+            loadWarehouse();
+            loadOperators();
+            showAlert('Stock assigned successfully!', 'success');
+        }
+
+        // Billing Functions
+        function loadBilling() {
+            updateBillingStats();
+            populateInvoicesTable();
+        }
+
+        function updateBillingStats() {
+            const totalInvoices = warehouseData.invoices.length;
+            document.getElementById('totalInvoices').textContent = totalInvoices;
+
+            const pendingAmount = warehouseData.invoices
+                .filter(invoice => invoice.status === 'pending')
+                .reduce((sum, invoice) => sum + invoice.total, 0);
+            document.getElementById('pendingAmount').textContent = `₹${pendingAmount.toFixed(2)}`;
+
+            const paidAmount = warehouseData.invoices
+                .filter(invoice => invoice.status === 'paid')
+                .reduce((sum, invoice) => sum + invoice.total, 0);
+            document.getElementById('paidAmount').textContent = `₹${paidAmount.toFixed(2)}`;
+
+            const today = new Date();
+            const overdueInvoices = warehouseData.invoices
+                .filter(invoice => invoice.status === 'pending' && new Date(invoice.dueDate) < today).length;
+            document.getElementById('overdueInvoices').textContent = overdueInvoices;
+        }
+
+        function populateInvoicesTable() {
+            const invoicesTable = document.getElementById('invoicesTable');
+            invoicesTable.innerHTML = '';
+
+            let filteredInvoices = [...warehouseData.invoices];
+
+            // Apply filters
+            const statusFilter = document.getElementById('invoiceStatusFilter')?.value;
+            const customerFilter = document.getElementById('customerFilter')?.value.toLowerCase();
+            const dateFilter = document.getElementById('invoiceDateFilter')?.value;
+
+            if (statusFilter) {
+                filteredInvoices = filteredInvoices.filter(invoice => invoice.status === statusFilter);
+            }
+            if (customerFilter) {
+                filteredInvoices = filteredInvoices.filter(invoice => 
+                    invoice.customerName.toLowerCase().includes(customerFilter)
+                );
+            }
+            if (dateFilter) {
+                filteredInvoices = filteredInvoices.filter(invoice => invoice.date === dateFilter);
+            }
+
+            filteredInvoices.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            filteredInvoices.forEach(invoice => {
+                const statusClass = invoice.status === 'paid' ? 'positive' : 
+                                  invoice.status === 'overdue' ? 'negative' : '';
+
+                const row = invoicesTable.insertRow();
+                row.innerHTML = `
+                    <td>#${invoice.id}</td>
+                    <td>${invoice.customerName}</td>
+                    <td>${new Date(invoice.date).toLocaleDateString()}</td>
+                    <td>₹${invoice.total.toFixed(2)}</td>
+                    <td><span class="stat-change ${statusClass}">${invoice.status}</span></td>
+                    <td>${new Date(invoice.dueDate).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-primary" onclick="viewInvoice(${invoice.id})">👁️</button>
+                        <button class="btn btn-secondary" onclick="printInvoice(${invoice.id})">🖨️</button>
+                        ${invoice.status === 'pending' ? `<button class="btn btn-success" onclick="markPaid(${invoice.id})">✅</button>` : ''}
+                    </td>
+                `;
+            });
+        }
+
+        function filterInvoices() {
+            populateInvoicesTable();
+        }
+
+        function showCreateInvoiceModal() {
+            const modal = document.getElementById('createInvoiceModal');
+            
+            // Set today's date
+            document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];
+            
+            // Set due date to 30 days from now
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 30);
+            document.getElementById('invoiceDueDate').value = dueDate.toISOString().split('T')[0];
+
+            // Populate product dropdowns
+            populateInvoiceProductDropdowns();
+
+            modal.classList.add('active');
+        }
+
+        function populateInvoiceProductDropdowns() {
+            const productSelects = document.querySelectorAll('select[name="itemProduct"]');
+            productSelects.forEach(select => {
+                select.innerHTML = '<option value="">Select Product</option>';
+                warehouseData.products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.id;
+                    option.textContent = `${product.name} (${product.size}) - ₹${product.price}`;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        function addInvoiceItem() {
+            const invoiceItems = document.getElementById('invoiceItems');
+            const newItem = document.createElement('div');
+            newItem.className = 'invoice-item';
+            newItem.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; margin-bottom: 10px;';
+            
+            newItem.innerHTML = `
+                <select class="form-select" name="itemProduct" required onchange="updateItemPrice(this)">
+                    <option value="">Select Product</option>
+                </select>
+                <input type="number" class="form-input" name="itemQuantity" placeholder="Qty" min="1" required onchange="calculateItemTotal(this)">
+                <input type="number" class="form-input" name="itemPrice" placeholder="Price" step="0.01" required onchange="calculateItemTotal(this)">
+                <input type="number" class="form-input" name="itemTotal" placeholder="Total" readonly>
+                <button type="button" class="btn btn-danger" onclick="removeInvoiceItem(this)">🗑️</button>
+            `;
+            
+            invoiceItems.appendChild(newItem);
+            
+            // Populate product dropdown for new item
+            const productSelect = newItem.querySelector('select[name="itemProduct"]');
+            warehouseData.products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} (${product.size}) - ₹${product.price}`;
+                productSelect.appendChild(option);
+            });
+        }
+
+        function removeInvoiceItem(button) {
+            button.closest('.invoice-item').remove();
+            calculateInvoiceTotal();
+        }
+
+        function updateItemPrice(select) {
+            const productId = parseInt(select.value);
+            if (productId) {
+                const product = warehouseData.products.find(p => p.id === productId);
+                if (product) {
+                    const priceInput = select.closest('.invoice-item').querySelector('input[name="itemPrice"]');
+                    priceInput.value = product.price;
+                    calculateItemTotal(priceInput);
+                }
+            }
+        }
+
+        function calculateItemTotal(input) {
+            const item = input.closest('.invoice-item');
+            const quantity = parseFloat(item.querySelector('input[name="itemQuantity"]').value) || 0;
+            const price = parseFloat(item.querySelector('input[name="itemPrice"]').value) || 0;
+            const total = quantity * price;
+            
+            item.querySelector('input[name="itemTotal"]').value = total.toFixed(2);
+            calculateInvoiceTotal();
+        }
+
+        function calculateInvoiceTotal() {
+            const itemTotals = document.querySelectorAll('input[name="itemTotal"]');
+            let subtotal = 0;
+            
+            itemTotals.forEach(input => {
+                subtotal += parseFloat(input.value) || 0;
+            });
+            
+            document.getElementById('invoiceSubtotal').value = subtotal.toFixed(2);
+            
+            const tax = parseFloat(document.getElementById('invoiceTax').value) || 0;
+            const taxAmount = subtotal * (tax / 100);
+            const total = subtotal + taxAmount;
+            
+            document.getElementById('invoiceTotal').value = total.toFixed(2);
+        }
+
+        function createInvoice(event) {
+            event.preventDefault();
+            
+            const customerName = document.getElementById('invoiceCustomerName').value;
+            const customerContact = document.getElementById('invoiceCustomerContact').value;
+            const customerAddress = document.getElementById('invoiceCustomerAddress').value;
+            const date = document.getElementById('invoiceDate').value;
+            const dueDate = document.getElementById('invoiceDueDate').value;
+            const subtotal = parseFloat(document.getElementById('invoiceSubtotal').value);
+            const tax = parseFloat(document.getElementById('invoiceTax').value) || 0;
+            const total = parseFloat(document.getElementById('invoiceTotal').value);
+
+            const items = [];
+            const invoiceItems = document.querySelectorAll('.invoice-item');
+            
+            invoiceItems.forEach(item => {
+                const productId = parseInt(item.querySelector('select[name="itemProduct"]').value);
+                const quantity = parseInt(item.querySelector('input[name="itemQuantity"]').value);
+                const price = parseFloat(item.querySelector('input[name="itemPrice"]').value);
+                
+                if (productId && quantity && price) {
+                    items.push({ productId, quantity, price });
+                }
+            });
+
+            if (items.length === 0) {
+                showAlert('Please add at least one item to the invoice', 'danger');
+                return;
+            }
+
+            const invoice = {
+                id: Date.now(),
+                customerName,
+                customerContact,
+                customerAddress,
+                date,
+                dueDate,
+                items,
+                subtotal,
+                tax,
+                total,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            warehouseData.invoices.push(invoice);
+            saveData();
+            
+            closeModal('createInvoiceModal');
+            loadBilling();
+            showAlert('Invoice created successfully!', 'success');
+        }
+
+        function markPaid(invoiceId) {
+            const invoice = warehouseData.invoices.find(inv => inv.id === invoiceId);
+            if (invoice) {
+                invoice.status = 'paid';
+                invoice.paidDate = new Date().toISOString().split('T')[0];
+                saveData();
+                loadBilling();
+                showAlert('Invoice marked as paid!', 'success');
+            }
+        }
+
+        // Reports Functions
+        function loadReports() {
+            setTodayDate();
+        }
+
+        function generateReport() {
+            const reportType = document.getElementById('reportType').value;
+            const fromDate = document.getElementById('reportFromDate').value;
+            const toDate = document.getElementById('reportToDate').value;
+
+            let reportData = [];
+            let headers = [];
+
+            switch(reportType) {
+                case 'daily':
+                    reportData = generateDailyReport(fromDate);
+                    headers = ['Product', 'Quantity Sold', 'Revenue', 'Profit'];
+                    break;
+                case 'operator':
+                    reportData = generateOperatorReport(fromDate, toDate);
+                    headers = ['Operator', 'Total Sales', 'Revenue', 'Performance'];
+                    break;
+                case 'product':
+                    reportData = generateProductReport(fromDate, toDate);
+                    headers = ['Product', 'Quantity Sold', 'Revenue', 'Profit Margin'];
+                    break;
+                case 'profit':
+                    reportData = generateProfitReport(fromDate, toDate);
+                    headers = ['Product', 'Cost', 'Revenue', 'Profit', 'Margin %'];
+                    break;
+                case 'inventory':
+                    reportData = generateInventoryReport();
+                    headers = ['Product', 'Current Stock', 'Value', 'Location', 'Status'];
+                    break;
+            }
+
+            displayReportResults(headers, reportData);
+        }
+
+        function generateDailyReport(date) {
+            const salesForDate = warehouseData.sales.filter(sale => sale.date === date);
+            const productSales = {};
+
+            salesForDate.forEach(sale => {
+                const product = warehouseData.products.find(p => p.id === sale.productId);
+                if (product) {
+                    if (!productSales[product.name]) {
+                        productSales[product.name] = {
+                            quantity: 0,
+                            revenue: 0,
+                            profit: 0
+                        };
+                    }
+                    productSales[product.name].quantity += sale.quantity;
+                    productSales[product.name].revenue += sale.quantity * sale.price;
+                    productSales[product.name].profit += sale.quantity * (sale.price - product.costPrice);
+                }
+            });
+
+            return Object.entries(productSales).map(([name, data]) => [
+                name,
+                data.quantity,
+                `₹${data.revenue.toFixed(2)}`,
+                `₹${data.profit.toFixed(2)}`
+            ]);
+        }
+
+        function generateOperatorReport(fromDate, toDate) {
+            const salesInRange = warehouseData.sales.filter(sale => 
+                sale.date >= fromDate && sale.date <= toDate
+            );
+            
+            const operatorSales = {};
+
+            salesInRange.forEach(sale => {
+                const operator = warehouseData.operators.find(op => op.id === sale.operatorId);
+                if (operator) {
+                    if (!operatorSales[operator.name]) {
+                        operatorSales[operator.name] = {
+                            totalSales: 0,
+                            revenue: 0
+                        };
+                    }
+                    operatorSales[operator.name].totalSales += sale.quantity;
+                    operatorSales[operator.name].revenue += sale.quantity * sale.price;
+                }
+            });
+
+            return Object.entries(operatorSales).map(([name, data]) => [
+                name,
+                data.totalSales,
+                `₹${data.revenue.toFixed(2)}`,
+                data.revenue > 1000 ? 'Excellent' : data.revenue > 500 ? 'Good' : 'Average'
+            ]);
+        }
+
+        function generateProductReport(fromDate, toDate) {
+            const salesInRange = warehouseData.sales.filter(sale => 
+                sale.date >= fromDate && sale.date <= toDate
+            );
+            
+            const productSales = {};
+
+            salesInRange.forEach(sale => {
+                const product = warehouseData.products.find(p => p.id === sale.productId);
+                if (product) {
+                    if (!productSales[product.name]) {
+                        productSales[product.name] = {
+                            quantity: 0,
+                            revenue: 0,
+                            profit: 0
+                        };
+                    }
+                    productSales[product.name].quantity += sale.quantity;
+                    productSales[product.name].revenue += sale.quantity * sale.price;
+                    productSales[product.name].profit += sale.quantity * (sale.price - product.costPrice);
+                }
+            });
+
+            return Object.entries(productSales).map(([name, data]) => {
+                const margin = data.revenue > 0 ? (data.profit / data.revenue * 100).toFixed(1) : 0;
+                return [
+                    name,
+                    data.quantity,
+                    `₹${data.revenue.toFixed(2)}`,
+                    `${margin}%`
+                ];
+            });
+        }
+
+        function generateProfitReport(fromDate, toDate) {
+            const salesInRange = warehouseData.sales.filter(sale => 
+                sale.date >= fromDate && sale.date <= toDate
+            );
+            
+            const productProfits = {};
+
+            salesInRange.forEach(sale => {
+                const product = warehouseData.products.find(p => p.id === sale.productId);
+                if (product) {
+                    if (!productProfits[product.name]) {
+                        productProfits[product.name] = {
+                            cost: 0,
+                            revenue: 0,
+                            profit: 0
+                        };
+                    }
+                    productProfits[product.name].cost += sale.quantity * product.costPrice;
+                    productProfits[product.name].revenue += sale.quantity * sale.price;
+                    productProfits[product.name].profit += sale.quantity * (sale.price - product.costPrice);
+                }
+            });
+
+            return Object.entries(productProfits).map(([name, data]) => {
+                const margin = data.revenue > 0 ? (data.profit / data.revenue * 100).toFixed(1) : 0;
+                return [
+                    name,
+                    `₹${data.cost.toFixed(2)}`,
+                    `₹${data.revenue.toFixed(2)}`,
+                    `₹${data.profit.toFixed(2)}`,
+                    `${margin}%`
+                ];
+            });
+        }
+
+        function generateInventoryReport() {
+            return warehouseData.warehouse.map(item => {
+                const product = warehouseData.products.find(p => p.id === item.productId);
+                if (!product) return null;
+                
+                const value = item.quantity * product.costPrice;
+                const status = item.quantity < warehouseData.settings.lowStockThreshold ? 'Low Stock' : 'Normal';
+                
+                return [
+                    `${product.name} (${product.size})`,
+                    item.quantity,
+                    `₹${value.toFixed(2)}`,
+                    item.location,
+                    status
+                ];
+            }).filter(Boolean);
+        }
+
+        function displayReportResults(headers, data) {
+            const reportResults = document.getElementById('reportResults');
+            const reportTable = document.getElementById('reportTable');
+            
+            // Create table header
+            const thead = reportTable.querySelector('thead') || reportTable.createTHead();
+            thead.innerHTML = '';
+            const headerRow = thead.insertRow();
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            
+            // Create table body
+            const tbody = reportTable.querySelector('tbody') || reportTable.createTBody();
+            tbody.innerHTML = '';
+            data.forEach(row => {
+                const tr = tbody.insertRow();
+                row.forEach(cell => {
+                    const td = tr.insertCell();
+                    td.textContent = cell;
+                });
+            });
+            
+            reportResults.classList.remove('hidden');
+        }
+
+        function exportReportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const reportType = document.getElementById('reportType').value;
+            doc.text(`${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report`, 14, 15);
+            
+            doc.autoTable({
+                html: '#reportTable',
+                startY: 25,
+                theme: 'grid',
+                headStyles: { fillColor: [59, 130, 246] }
+            });
+            
+            doc.save(`${reportType}_report.pdf`);
+        }
+
+        function exportReportExcel() {
+            const table = document.getElementById('reportTable');
+            const ws = XLSX.utils.table_to_sheet(table);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Report");
+            
+            const reportType = document.getElementById('reportType').value;
+            XLSX.writeFile(wb, `${reportType}_report.xlsx`);
+        }
+
+        // Settings Functions
+        function loadSettings() {
+            document.getElementById('companyName').value = warehouseData.settings.companyName;
+            document.getElementById('currency').value = warehouseData.settings.currency;
+            document.getElementById('lowStockThreshold').value = warehouseData.settings.lowStockThreshold;
+            document.getElementById('lowStockNotifications').checked = warehouseData.settings.notifications.lowStock;
+            document.getElementById('salesNotifications').checked = warehouseData.settings.notifications.sales;
+            document.getElementById('overdueNotifications').checked = warehouseData.settings.notifications.overdue;
+        }
+
+        function saveGeneralSettings() {
+            warehouseData.settings.companyName = document.getElementById('companyName').value;
+            warehouseData.settings.currency = document.getElementById('currency').value;
+            warehouseData.settings.lowStockThreshold = parseInt(document.getElementById('lowStockThreshold').value);
+            
+            saveData();
+            showAlert('Settings saved successfully!', 'success');
+        }
+
+        function saveNotificationSettings() {
+            warehouseData.settings.notifications.lowStock = document.getElementById('lowStockNotifications').checked;
+            warehouseData.settings.notifications.sales = document.getElementById('salesNotifications').checked;
+            warehouseData.settings.notifications.overdue = document.getElementById('overdueNotifications').checked;
+            
+            saveData();
+            showAlert('Notification settings saved!', 'success');
+        }
+
+        function exportAllData() {
+            const dataStr = JSON.stringify(warehouseData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `warehouse_backup_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            showAlert('Data exported successfully!', 'success');
+        }
+
+        function importData() {
+            document.getElementById('importFile').click();
+        }
+
+        function handleImport() {
+            const file = document.getElementById('importFile').files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (confirm('This will replace all current data. Are you sure?')) {
+                        warehouseData = { ...warehouseData, ...importedData };
+                        saveData();
+                        location.reload();
+                    }
+                } catch (error) {
+                    showAlert('Invalid file format!', 'danger');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearOldData() {
+            if (confirm('This will delete data older than 30 days. Continue?')) {
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                const cutoffDate = thirtyDaysAgo.toISOString().split('T')[0];
+                
+                warehouseData.sales = warehouseData.sales.filter(sale => sale.date >= cutoffDate);
+                warehouseData.invoices = warehouseData.invoices.filter(invoice => invoice.date >= cutoffDate);
+                
+                saveData();
+                showAlert('Old data cleared successfully!', 'success');
+            }
+        }
+
+        function resetSystem() {
+            if (confirm('This will delete ALL data and reset the system. This cannot be undone!')) {
+                if (confirm('Are you absolutely sure? This action is irreversible!')) {
+                    localStorage.removeItem('warehouseProData');
+                    location.reload();
+                }
+            }
+        }
+
+        // Utility Functions
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+            dateInputs.forEach(input => {
+                if (!input.value) {
+                    input.value = today;
+                }
+            });
+        }
+
+        function startAutoRefresh() {
+            // Auto-refresh dashboard every 30 seconds
+            setInterval(() => {
+                if (currentTab === 'dashboard') {
+                    updateDashboardStats();
+                    updateCharts();
+                }
+            }, 30000);
+        }
+
+        function refreshActivity() {
+            loadRecentActivity();
+            showAlert('Activity refreshed!', 'success');
+        }
+
+        function showNotifications() {
+            const count = warehouseData.warehouse.filter(item => 
+                item.quantity < warehouseData.settings.lowStockThreshold
+            ).length;
+            
+            if (count > 0) {
+                showAlert(`You have ${count} low stock alerts!`, 'warning');
+            } else {
+                showAlert('No new notifications', 'success');
+            }
+        }
+
+        function showQuickActions() {
+            const actions = [
+                'Record Sale',
+                'Add Stock',
+                'Create Invoice',
+                'Add Operator'
+            ];
+            
+            const action = prompt(`Quick Actions:\n${actions.map((a, i) => `${i+1}. ${a}`).join('\n')}\n\nEnter number (1-4):`);
+            
+            switch(action) {
+                case '1':
+                    showRecordSaleModal();
+                    break;
+                case '2':
+                    showAddStockModal();
+                    break;
+                case '3':
+                    showCreateInvoiceModal();
+                    break;
+                case '4':
+                    showAddOperatorModal();
+                    break;
+            }
+        }
+
+        // Global search functionality
+        document.getElementById('globalSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            if (searchTerm.length < 2) return;
+
+            // Search in products
+            const matchingProducts = warehouseData.products.filter(product => 
+                product.name.toLowerCase().includes(searchTerm) ||
+                product.size.toLowerCase().includes(searchTerm)
+            );
+
+            // Search in operators
+            const matchingOperators = warehouseData.operators.filter(operator => 
+                operator.name.toLowerCase().includes(searchTerm) ||
+                (operator.contact && operator.contact.includes(searchTerm))
+            );
+
+            // Search in invoices
+            const matchingInvoices = warehouseData.invoices.filter(invoice => 
+                invoice.customerName.toLowerCase().includes(searchTerm)
+            );
+
+            // Show search results (simplified - you could create a dropdown)
+            if (matchingProducts.length > 0 || matchingOperators.length > 0 || matchingInvoices.length > 0) {
+                console.log('Search results:', {
+                    products: matchingProducts,
+                    operators: matchingOperators,
+                    invoices: matchingInvoices
+                });
+            }
+        });
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 's':
+                        e.preventDefault();
+                        saveData();
+                        showAlert('Data saved!', 'success');
+                        break;
+                    case 'n':
+                        e.preventDefault();
+                        if (currentTab === 'products') showAddProductModal();
+                        else if (currentTab === 'operators') showAddOperatorModal();
+                        else if (currentTab === 'billing') showCreateInvoiceModal();
+                        break;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
