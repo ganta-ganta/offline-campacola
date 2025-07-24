@@ -1,0 +1,4179 @@
+[⚠️ Suspicious Content] <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Warehouse Management System</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --danger: #EF4444;
+            --warning: #F97316;
+            --success: #22C55E;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+            color: var(--gray-800);
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: white;
+            width: 300px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .header-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Navigation Styles */
+        .nav-container {
+            background: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 80px;
+            z-index: 90;
+        }
+
+        .nav-tabs {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .nav-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-tab {
+            background: none;
+            border: none;
+            padding: 1rem 1.5rem;
+            color: var(--gray-600);
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-tab:hover {
+            color: var(--primary);
+            background: var(--gray-50);
+        }
+
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: var(--gray-50);
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card.secondary {
+            background: linear-gradient(135deg, var(--secondary) 0%, #059669 100%);
+        }
+
+        .stat-card.accent {
+            background: linear-gradient(135deg, var(--accent) 0%, #D97706 100%);
+        }
+
+        .stat-card.danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #DC2626 100%);
+        }
+
+        .stat-card.warning {
+            background: linear-gradient(135deg, var(--warning) 0%, #EA580C 100%);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        .stat-icon {
+            width: 24px;
+            height: 24px;
+            opacity: 0.8;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            opacity: 0.8;
+        }
+
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #059669;
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-lg {
+            padding: 0.875rem 1.75rem;
+            font-size: 1rem;
+        }
+
+        /* Form Styles */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-input:disabled {
+            background: var(--gray-100);
+            color: var(--gray-500);
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .table th {
+            background: var(--gray-50);
+            padding: 0.875rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-700);
+            border-bottom: 1px solid var(--gray-200);
+            white-space: nowrap;
+        }
+
+        .table td {
+            padding: 0.875rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .table tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Product Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-200);
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .product-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 0.25rem;
+        }
+
+        .product-subtitle {
+            font-size: 0.875rem;
+            color: var(--gray-500);
+        }
+
+        .product-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #DCFCE7;
+            color: #166534;
+        }
+
+        .badge-warning {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .badge-danger {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .product-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 0.25rem;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 1rem 0;
+        }
+
+        .chart-container.large {
+            height: 400px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-xl);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--gray-400);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--gray-600);
+            background: var(--gray-100);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: alertSlideIn 0.3s ease;
+        }
+
+        @keyframes alertSlideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .alert-success {
+            background: #DCFCE7;
+            color: #166534;
+            border: 1px solid #BBF7D0;
+        }
+
+        .alert-warning {
+            background: #FEF3C7;
+            color: #92400E;
+            border: 1px solid #FDE68A;
+        }
+
+        .alert-danger {
+            background: #FEE2E2;
+            color: #991B1B;
+            border: 1px solid #FECACA;
+        }
+
+        .alert-info {
+            background: #DBEAFE;
+            color: #1E40AF;
+            border: 1px solid #BFDBFE;
+        }
+
+        /* Loading States */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--gray-200);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-tabs {
+                padding: 0 1rem;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .card {
+                padding: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        .font-bold { font-weight: bold; }
+        .font-semibold { font-weight: 600; }
+        .text-sm { font-size: 0.875rem; }
+        .text-xs { font-size: 0.75rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .mb-0 { margin-bottom: 0; }
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .mb-3 { margin-bottom: 1.5rem; }
+        .mt-0 { margin-top: 0; }
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mt-3 { margin-top: 1.5rem; }
+        .p-0 { padding: 0; }
+        .p-1 { padding: 0.5rem; }
+        .p-2 { padding: 1rem; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-1 { gap: 0.5rem; }
+        .gap-2 { gap: 1rem; }
+        .gap-3 { gap: 1.5rem; }
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+        .hidden { display: none; }
+        .block { display: block; }
+        .inline-block { display: inline-block; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--gray-100);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-400);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">📦</div>
+                <div>
+                    <div>WarehousePro</div>
+                    <div style="font-size: 0.7rem; opacity: 0.8;">Advanced Management System</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <input type="text" class="search-box" placeholder="Search products, operators, reports..." id="globalSearch">
+                <button class="header-btn" onclick="showNotifications()">
+                    🔔 <span id="notificationCount">0</span>
+                </button>
+                <button class="header-btn" onclick="showSettings()">
+                    ⚙️ Settings
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-container">
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="openTab('dashboard')">
+                📊 Dashboard
+            </button>
+            <button class="nav-tab" onclick="openTab('warehouse')">
+                📦 Warehouse
+            </button>
+            <button class="nav-tab" onclick="openTab('operators')">
+                👥 Operators
+            </button>
+            <button class="nav-tab" onclick="openTab('products')">
+                🏷️ Products
+            </button>
+            <button class="nav-tab" onclick="openTab('sales')">
+                💰 Sales
+            </button>
+            <button class="nav-tab" onclick="openTab('reports')">
+                📈 Reports
+            </button>
+            <button class="nav-tab" onclick="openTab('billing')">
+                🧾 AMAX Billing
+            </button>
+            <button class="nav-tab" onclick="openTab('settings')">
+                ⚙️ Settings
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Total Products</div>
+                        <div class="stat-icon">📦</div>
+                    </div>
+                    <div class="stat-value" id="totalProducts">0</div>
+                    <div class="stat-change">
+                        <span>📈</span> Active inventory items
+                    </div>
+                </div>
+                
+                <div class="stat-card secondary">
+                    <div class="stat-header">
+                        <div class="stat-title">Warehouse Stock</div>
+                        <div class="stat-icon">📊</div>
+                    </div>
+                    <div class="stat-value" id="warehouseTotal">0</div>
+                    <div class="stat-change">
+                        <span>📦</span> Units in stock
+                    </div>
+                </div>
+                
+                <div class="stat-card accent">
+                    <div class="stat-header">
+                        <div class="stat-title">Active Operators</div>
+                        <div class="stat-icon">👥</div>
+                    </div>
+                    <div class="stat-value" id="totalOperators">0</div>
+                    <div class="stat-change">
+                        <span>👤</span> Field operators
+                    </div>
+                </div>
+                
+                <div class="stat-card warning">
+                    <div class="stat-header">
+                        <div class="stat-title">Today's Sales</div>
+                        <div class="stat-icon">💰</div>
+                    </div>
+                    <div class="stat-value" id="todaySales">0</div>
+                    <div class="stat-change">
+                        <span>📈</span> Units sold today
+                    </div>
+                </div>
+                
+                <div class="stat-card danger">
+                    <div class="stat-header">
+                        <div class="stat-title">Today's Revenue</div>
+                        <div class="stat-icon">💵</div>
+                    </div>
+                    <div class="stat-value" id="todayRevenue">₹0</div>
+                    <div class="stat-change">
+                        <span>💰</span> Revenue generated
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📈 Sales Trend (Last 7 Days)</h3>
+                        <select id="chartPeriod" class="form-select" style="width: auto;" onchange="updateSalesChart()">
+                            <option value="7">Last 7 Days</option>
+                            <option value="30">Last 30 Days</option>
+                            <option value="90">Last 3 Months</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">🎯 Top Products</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="topProductsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts & Recent Activity -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">⚠️ Low Stock Alerts</h3>
+                        <span class="product-badge badge-warning" id="lowStockCount">0 Items</span>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Current Stock</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lowStockTable">
+                                <tr>
+                                    <td colspan="4" class="text-center">No low stock items</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">📋 Recent Transactions</h3>
+                        <button class="btn btn-outline btn-sm" onclick="openTab('reports')">View All</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Type</th>
+                                    <th>Operator</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentTransactionsTable">
+                                <tr>
+                                    <td colspan="4" class="text-center">No recent transactions</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warehouse Tab -->
+        <div id="warehouse" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📦 Warehouse Inventory Management</h3>
+                    <div class="flex gap-2">
+                        <button class="btn btn-secondary" onclick="exportWarehouseToExcel()">
+                            📊 Export Excel
+                        </button>
+                        <button class="btn btn-accent" onclick="exportWarehouseToPDF()">
+                            📄 Export PDF
+                        </button>
+                        <button class="btn btn-primary" onclick="showAddProductModal()">
+                            ➕ Add Product
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Warehouse Stats -->
+                <div class="stats-grid mb-3">
+                    <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="totalStockValue">₹0</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">Total Stock Value</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="lowStockProducts">0</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">Low Stock Items</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="totalLocations">0</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">Storage Locations</div>
+                    </div>
+                </div>
+
+                <!-- Search and Filter -->
+                <div class="form-grid mb-3">
+                    <div class="form-group">
+                        <input type="text" class="form-input" placeholder="🔍 Search products..." id="warehouseSearch" oninput="filterWarehouseProducts()">
+                    </div>
+                    <div class="form-group">
+                        <select class="form-select" id="stockFilter" onchange="filterWarehouseProducts()">
+                            <option value="">All Stock Levels</option>
+                            <option value="low">Low Stock (&lt;20)</option>
+                            <option value="medium">Medium Stock (20-50)</option>
+                            <option value="high">High Stock (&gt;50)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select class="form-select" id="categoryFilter" onchange="filterWarehouseProducts()">
+                            <option value="">All Categories</option>
+                            <option value="cola">Cola Drinks</option>
+                            <option value="juice">Fruit Juices</option>
+                            <option value="water">Water</option>
+                            <option value="energy">Energy Drinks</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="product-grid" id="warehouseProductsGrid">
+                    <!-- Products will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Operators Tab -->
+        <div id="operators" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">👥 Operator Management</h3>
+                    <button class="btn btn-primary" onclick="showAddOperatorModal()">
+                        ➕ Add Operator
+                    </button>
+                </div>
+
+                <!-- Operator Stats -->
+                <div class="stats-grid mb-3">
+                    <div style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="activeOperators">0</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">Active Operators</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="totalAssignedStock">0</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">Total Assigned Stock</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="todayOperatorSales">₹0</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">Today's Sales</div>
+                    </div>
+                </div>
+
+                <!-- Operators Table -->
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Contact</th>
+                                <th>Assigned Stock</th>
+                                <th>Today's Sales</th>
+                                <th>Performance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="operatorsTable">
+                            <!-- Operators will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Assign Stock Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📦 Assign Stock to Operators</h3>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Select Operator</label>
+                        <select class="form-select" id="assignOperator">
+                            <option value="">Choose operator...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Select Product</label>
+                        <select class="form-select" id="assignProduct">
+                            <option value="">Choose product...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" class="form-input" id="assignQuantity" min="1" placeholder="Enter quantity">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-primary w-full" onclick="assignStock()">
+                            📦 Assign Stock
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Current Assignments -->
+                <h4 class="mb-2">📋 Current Assignments</h4>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Operator</th>
+                                <th>Product</th>
+                                <th>Assigned</th>
+                                <th>Sold</th>
+                                <th>Remaining</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assignmentsTable">
+                            <!-- Assignments will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Tab -->
+        <div id="products" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">🏷️ Product Sales Analytics</h3>
+                    <div class="flex gap-2">
+                        <select class="form-select" style="width: auto;" id="productAnalyticsPeriod" onchange="updateProductAnalytics()">
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="all">All Time</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="exportProductAnalytics()">
+                            📊 Export Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Product Performance Chart -->
+                <div class="chart-container large mb-3">
+                    <canvas id="productPerformanceChart"></canvas>
+                </div>
+
+                <!-- Top Performing Products -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">🏆 Top Selling Products</h4>
+                        </div>
+                        <div id="topSellingProducts">
+                            <!-- Top products will be loaded here -->
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">💰 Most Profitable Products</h4>
+                        </div>
+                        <div id="mostProfitableProducts">
+                            <!-- Profitable products will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Tab -->
+        <div id="sales" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">💰 Sales Management</h3>
+                    <button class="btn btn-primary" onclick="showRecordSalesModal()">
+                        ➕ Record Sales
+                    </button>
+                </div>
+
+                <!-- Sales Summary -->
+                <div class="stats-grid mb-3">
+                    <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="totalSalesToday">₹0</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">Today's Sales</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="totalSalesWeek">₹0</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">This Week</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="totalSalesMonth">₹0</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">This Month</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="totalProfitToday">₹0</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">Today's Profit</div>
+                    </div>
+                </div>
+
+                <!-- Sales by Operator -->
+                <div class="chart-container large mb-3">
+                    <canvas id="salesByOperatorChart"></canvas>
+                </div>
+
+                <!-- Recent Sales -->
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Operator</th>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Total Amount</th>
+                                <th>Profit</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentSalesTable">
+                            <!-- Recent sales will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reports" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📈 Advanced Reports & Analytics</h3>
+                </div>
+
+                <!-- Report Generation -->
+                <div class="form-grid mb-3">
+                    <div class="form-group">
+                        <label class="form-label">Report Type</label>
+                        <select class="form-select" id="reportType" onchange="handleReportTypeChange()">
+                            <option value="daily">Daily Sales Report</option>
+                            <option value="weekly">Weekly Performance</option>
+                            <option value="monthly">Monthly Summary</option>
+                            <option value="operator">Operator Performance</option>
+                            <option value="product">Product Analysis</option>
+                            <option value="profit">Profit Analysis</option>
+                            <option value="inventory">Inventory Report</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Date Range</label>
+                        <input type="date" class="form-input" id="reportStartDate">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End Date</label>
+                        <input type="date" class="form-input" id="reportEndDate">
+                    </div>
+                    <div class="form-group" id="operatorSelectGroup" style="display: none;">
+                        <label class="form-label">Select Operator</label>
+                        <select class="form-select" id="reportOperator">
+                            <option value="">All Operators</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mb-3">
+                    <button class="btn btn-primary" onclick="generateReport()">
+                        📊 Generate Report
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportReport('excel')">
+                        📊 Export Excel
+                    </button>
+                    <button class="btn btn-accent" onclick="exportReport('pdf')">
+                        📄 Export PDF
+                    </button>
+                    <button class="btn btn-outline" onclick="printReport()">
+                        🖨️ Print
+                    </button>
+                </div>
+
+                <!-- Report Results -->
+                <div id="reportResults" class="card" style="display: none;">
+                    <div class="card-header">
+                        <h4 class="card-title">📋 Report Results</h4>
+                        <span id="reportSummary" class="text-sm"></span>
+                    </div>
+                    <div class="table-container">
+                        <table class="table" id="reportTable">
+                            <!-- Report data will be loaded here -->
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AMAX Billing Tab -->
+        <div id="billing" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">🧾 AMAX Billing & Invoicing System</h3>
+                    <button class="btn btn-primary" onclick="createNewInvoice()">
+                        ➕ Create Invoice
+                    </button>
+                </div>
+
+                <!-- Billing Stats -->
+                <div class="stats-grid mb-3">
+                    <div style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="totalInvoices">0</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">Total Invoices</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="pendingPayments">₹0</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">Pending Payments</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="paidInvoices">₹0</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">Paid Amount</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); color: white; padding: 1rem; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5rem; font-weight: bold;" id="overdueInvoices">0</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">Overdue Invoices</div>
+                    </div>
+                </div>
+
+                <!-- Invoice Filters -->
+                <div class="form-grid mb-3">
+                    <div class="form-group">
+                        <input type="text" class="form-input" placeholder="🔍 Search invoices..." id="invoiceSearch">
+                    </div>
+                    <div class="form-group">
+                        <select class="form-select" id="invoiceStatusFilter">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="paid">Paid</option>
+                            <option value="overdue">Overdue</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input type="date" class="form-input" id="invoiceFromDate">
+                    </div>
+                    <div class="form-group">
+                        <input type="date" class="form-input" id="invoiceToDate">
+                    </div>
+                </div>
+
+                <!-- Invoices Table -->
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Date</th>
+                                <th>Operator</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoicesTable">
+                            <!-- Invoices will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">⚙️ System Settings</h3>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <!-- General Settings -->
+                    <div>
+                        <h4 class="mb-2">🔧 General Settings</h4>
+                        <div class="form-group">
+                            <label class="form-label">Company Name</label>
+                            <input type="text" class="form-input" id="companyName" value="Campa Cola Warehouse">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Currency</label>
+                            <select class="form-select" id="currency">
+                                <option value="INR">Indian Rupee (₹)</option>
+                                <option value="USD">US Dollar ($)</option>
+                                <option value="EUR">Euro (€)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Low Stock Threshold</label>
+                            <input type="number" class="form-input" id="lowStockThreshold" value="20">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Time Zone</label>
+                            <select class="form-select" id="timezone">
+                                <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                                <option value="UTC">UTC</option>
+                                <option value="America/New_York">America/New_York (EST)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Data Management -->
+                    <div>
+                        <h4 class="mb-2">💾 Data Management</h4>
+                        <div class="form-group">
+                            <label class="form-label">Backup Data</label>
+                            <div class="flex gap-2">
+                                <button class="btn btn-secondary" onclick="backupData('json')">
+                                    📄 JSON Backup
+                                </button>
+                                <button class="btn btn-accent" onclick="backupData('excel')">
+                                    📊 Excel Backup
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Restore Data</label>
+                            <input type="file" class="form-input" id="restoreFile" accept=".json,.xlsx">
+                            <button class="btn btn-primary mt-1" onclick="restoreData()">
+                                📥 Restore
+                            </button>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Reset System</label>
+                            <button class="btn btn-danger" onclick="confirmResetSystem()">
+                                🗑️ Reset All Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mt-3">
+                    <button class="btn btn-primary" onclick="saveSettings()">
+                        💾 Save Settings
+                    </button>
+                    <button class="btn btn-outline" onclick="resetSettings()">
+                        🔄 Reset to Default
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    
+    <!-- Add Product Modal -->
+    <div id="addProductModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">➕ Add New Product</h3>
+                <button class="modal-close" onclick="closeModal('addProductModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Product Name</label>
+                    <input type="text" class="form-input" id="newProductName" placeholder="Enter product name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Size/Volume</label>
+                    <input type="text" class="form-input" id="newProductSize" placeholder="e.g., 200ml, 500ml">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select class="form-select" id="newProductCategory">
+                        <option value="cola">Cola Drinks</option>
+                        <option value="juice">Fruit Juices</option>
+                        <option value="water">Water</option>
+                        <option value="energy">Energy Drinks</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Cost Price (₹)</label>
+                        <input type="number" class="form-input" id="newProductCostPrice" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Selling Price (₹)</label>
+                        <input type="number" class="form-input" id="newProductPrice" step="0.01">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Initial Stock</label>
+                        <input type="number" class="form-input" id="newProductStock" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-input" id="newProductLocation" placeholder="e.g., A1, B2">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('addProductModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="addNewProduct()">Add Product</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Operator Modal -->
+    <div id="addOperatorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">👤 Add New Operator</h3>
+                <button class="modal-close" onclick="closeModal('addOperatorModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-input" id="newOperatorName" placeholder="Enter operator name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contact Number</label>
+                    <input type="tel" class="form-input" id="newOperatorContact" placeholder="Enter phone number">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-input" id="newOperatorEmail" placeholder="Enter email (optional)">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <textarea class="form-input" id="newOperatorAddress" rows="3" placeholder="Enter address"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Emergency Contact</label>
+                    <input type="tel" class="form-input" id="newOperatorEmergencyContact" placeholder="Emergency contact number">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('addOperatorModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="addNewOperator()">Add Operator</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Stock Modal -->
+    <div id="addStockModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">📦 Add Stock</h3>
+                <button class="modal-close" onclick="closeModal('addStockModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Product</label>
+                    <input type="text" class="form-input" id="stockProductName" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Current Stock</label>
+                    <input type="text" class="form-input" id="currentStock" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Quantity to Add</label>
+                    <input type="number" class="form-input" id="addStockQuantity" min="1" placeholder="Enter quantity">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input type="text" class="form-input" id="stockLocation" placeholder="Storage location">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Supplier/Source</label>
+                    <input type="text" class="form-input" id="stockSupplier" placeholder="Enter supplier name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Purchase Cost per Unit (₹)</label>
+                    <input type="number" class="form-input" id="stockCostPrice" step="0.01">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('addStockModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="addStockToWarehouse()">Add Stock</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Record Sales Modal -->
+    <div id="recordSalesModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3 class="modal-title">💰 Record Sales</h3>
+                <button class="modal-close" onclick="closeModal('recordSalesModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Select Operator</label>
+                        <select class="form-select" id="salesOperator" onchange="loadOperatorStockForSales()">
+                            <option value="">Choose operator...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sale Date</label>
+                        <input type="date" class="form-input" id="salesDate">
+                    </div>
+                </div>
+                
+                <div id="salesProductsContainer">
+                    <!-- Products will be loaded here -->
+                </div>
+                
+                <div id="salesSummary" class="card" style="display: none; background: var(--gray-50); margin-top: 1rem;">
+                    <h4>📊 Sales Summary</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; text-align: center;">
+                        <div>
+                            <div style="font-size: 1.25rem; font-weight: bold; color: var(--primary);" id="totalQuantitySold">0</div>
+                            <div style="font-size: 0.875rem; color: var(--gray-600);">Total Quantity</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.25rem; font-weight: bold; color: var(--secondary);" id="totalSaleAmount">₹0</div>
+                            <div style="font-size: 0.875rem; color: var(--gray-600);">Total Amount</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.25rem; font-weight: bold; color: var(--accent);" id="totalProfitAmount">₹0</div>
+                            <div style="font-size: 0.875rem; color: var(--gray-600);">Total Profit</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('recordSalesModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="recordSales()">Record Sales</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Invoice Modal -->
+    <div id="createInvoiceModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3 class="modal-title">🧾 Create New Invoice</h3>
+                <button class="modal-close" onclick="closeModal('createInvoiceModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Invoice Number</label>
+                        <input type="text" class="form-input" id="invoiceNumber" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Invoice Date</label>
+                        <input type="date" class="form-input" id="invoiceDate">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Due Date</label>
+                        <input type="date" class="form-input" id="invoiceDueDate">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Select Operator</label>
+                        <select class="form-select" id="invoiceOperator">
+                            <option value="">Choose operator...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h4 class="mb-2">📦 Invoice Items</h4>
+                <div id="invoiceItemsContainer">
+                    <div class="invoice-item">
+                        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 1rem; align-items: end; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--gray-200); border-radius: 8px;">
+                            <div class="form-group mb-0">
+                                <label class="form-label">Product</label>
+                                <select class="form-select invoice-product">
+                                    <option value="">Select product...</option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-input invoice-quantity" min="1">
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="form-label">Unit Price</label>
+                                <input type="number" class="form-input invoice-unit-price" step="0.01" readonly>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="form-label">Total</label>
+                                <input type="number" class="form-input invoice-item-total" readonly>
+                            </div>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="removeInvoiceItem(this)" style="margin-top: 1.5rem;">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-outline" onclick="addInvoiceItem()">
+                    ➕ Add Item
+                </button>
+
+                <div class="card" style="background: var(--gray-50); margin-top: 1rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; text-align: center;">
+                        <div>
+                            <div style="font-size: 1.25rem; font-weight: bold; color: var(--gray-600);" id="invoiceSubtotal">₹0</div>
+                            <div style="font-size: 0.875rem;">Subtotal</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.25rem; font-weight: bold; color: var(--accent);" id="invoiceTax">₹0</div>
+                            <div style="font-size: 0.875rem;">Tax (18%)</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);" id="invoiceTotal">₹0</div>
+                            <div style="font-size: 0.875rem;">Total</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea class="form-input" id="invoiceNotes" rows="3" placeholder="Additional notes or terms..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('createInvoiceModal')">Cancel</button>
+                <button class="btn btn-secondary" onclick="saveInvoiceDraft()">Save Draft</button>
+                <button class="btn btn-primary" onclick="createInvoice()">Create Invoice</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let warehouseData = {
+            products: [
+                { id: 1, name: 'Campa Cola', size: '200ml', price: 220, costPrice: 198, category: 'cola' },
+                { id: 2, name: 'Power Up', size: '200ml', price: 220, costPrice: 198, category: 'energy' },
+                { id: 3, name: 'Orange Crush', size: '200ml', price: 220, costPrice: 198, category: 'juice' },
+                { id: 4, name: 'Campa Soda', size: '500ml', price: 260, costPrice: 220, category: 'cola' },
+                { id: 5, name: 'Campa Cola', size: '500ml', price: 360, costPrice: 320, category: 'cola' },
+                { id: 6, name: 'Orange Crush', size: '500ml', price: 360, costPrice: 320, category: 'juice' },
+                { id: 7, name: 'Gold Boost Tin', size: 'Can', price: 580, costPrice: 550, category: 'energy' },
+                { id: 8, name: 'Berry Kick', size: '200ml', price: 220, costPrice: 180, category: 'juice' },
+                { id: 9, name: 'Lemon Fresh', size: '200ml', price: 220, costPrice: 198, category: 'juice' },
+                { id: 10, name: 'Raskik Tetra Mango', size: '125ml', price: 280, costPrice: 250, category: 'juice' },
+                { id: 11, name: 'Raskik Mango', size: '150ml', price: 220, costPrice: 185, category: 'juice' },
+                { id: 12, name: 'Raskik Nimbu Pani', size: '150ml', price: 220, costPrice: 185, category: 'juice' },
+                { id: 13, name: 'Raskik Apple Drink', size: '150ml', price: 220, costPrice: 185, category: 'juice' },
+                { id: 14, name: 'Raskik Mixed Fruit', size: '150ml', price: 220, costPrice: 185, category: 'juice' },
+                { id: 15, name: 'Raskik Glucose', size: '150ml', price: 220, costPrice: 185, category: 'energy' },
+                { id: 16, name: 'Spinner Lemon', size: '150ml', price: 220, costPrice: 185, category: 'juice' },
+                { id: 17, name: 'Spinner Orange', size: '150ml', price: 220, costPrice: 185, category: 'juice' },
+                { id: 18, name: 'Spinner Nitro', size: '150ml', price: 220, costPrice: 185, category: 'energy' },
+                { id: 19, name: 'Independence Water', size: '750ml', price: 150, costPrice: 128, category: 'water' }
+            ],
+            inventory: [],
+            operators: [],
+            assignments: [],
+            sales: [],
+            transactions: [],
+            invoices: [],
+            settings: {
+                companyName: 'Campa Cola Warehouse',
+                currency: 'INR',
+                lowStockThreshold: 20,
+                timezone: 'Asia/Kolkata'
+            }
+        };
+
+        let charts = {
+            sales: null,
+            topProducts: null,
+            productPerformance: null,
+            salesByOperator: null
+        };
+
+        // Initialize the system
+        function initializeSystem() {
+            loadDataFromStorage();
+            initializeInventory();
+            updateAllStats();
+            initializeCharts();
+            setupEventListeners();
+            
+            // Set today's date in date inputs
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelectorAll('input[type="date"]').forEach(input => {
+                if (!input.value) input.value = today;
+            });
+        }
+
+        // Load data from localStorage
+        function loadDataFromStorage() {
+            const saved = localStorage.getItem('warehouseProData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                warehouseData = { ...warehouseData, ...data };
+            }
+        }
+
+        // Save data to localStorage
+        function saveDataToStorage() {
+            localStorage.setItem('warehouseProData', JSON.stringify(warehouseData));
+        }
+
+        // Initialize inventory with random stock levels
+        function initializeInventory() {
+            if (warehouseData.inventory.length === 0) {
+                warehouseData.products.forEach(product => {
+                    warehouseData.inventory.push({
+                        productId: product.id,
+                        quantity: Math.floor(Math.random() * 100) + 50,
+                        location: `${String.fromCharCode(65 + Math.floor(Math.random() * 5))}${Math.floor(Math.random() * 10) + 1}`,
+                        lastUpdated: new Date().toISOString()
+                    });
+                });
+                saveDataToStorage();
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Global search
+            document.getElementById('globalSearch').addEventListener('input', handleGlobalSearch);
+            
+            // Modal close on outside click
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal')) {
+                    e.target.classList.remove('active');
+                }
+            });
+
+            // Invoice item calculations
+            document.addEventListener('input', (e) => {
+                if (e.target.classList.contains('invoice-quantity') || 
+                    e.target.classList.contains('invoice-unit-price')) {
+                    calculateInvoiceItemTotal(e.target);
+                }
+            });
+
+            document.addEventListener('change', (e) => {
+                if (e.target.classList.contains('invoice-product')) {
+                    updateInvoiceProductPrice(e.target);
+                }
+            });
+        }
+
+        // Tab Management
+        function openTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked nav tab
+            event.target.classList.add('active');
+            
+            // Load tab-specific data
+            switch(tabName) {
+                case 'dashboard':
+                    updateDashboard();
+                    break;
+                case 'warehouse':
+                    updateWarehouse();
+                    break;
+                case 'operators':
+                    updateOperators();
+                    break;
+                case 'products':
+                    updateProductAnalytics();
+                    break;
+                case 'sales':
+                    updateSales();
+                    break;
+                case 'reports':
+                    updateReports();
+                    break;
+                case 'billing':
+                    updateBilling();
+                    break;
+                case 'settings':
+                    loadSettings();
+                    break;
+            }
+        }
+
+        // Update all statistics
+        function updateAllStats() {
+            // Dashboard stats
+            document.getElementById('totalProducts').textContent = warehouseData.products.length;
+            document.getElementById('warehouseTotal').textContent = getTotalStock();
+            document.getElementById('totalOperators').textContent = warehouseData.operators.length;
+            document.getElementById('todaySales').textContent = getTodaySales().quantity;
+            document.getElementById('todayRevenue').textContent = `₹${getTodaySales().revenue.toLocaleString()}`;
+            
+            updateLowStockAlerts();
+            updateRecentTransactions();
+        }
+
+        // Get total stock
+        function getTotalStock() {
+            return warehouseData.inventory.reduce((total, item) => total + item.quantity, 0);
+        }
+
+        // Get today's sales
+        function getTodaySales() {
+            const today = new Date().toISOString().split('T')[0];
+            const todaySales = warehouseData.sales.filter(sale => sale.date === today);
+            
+            return {
+                quantity: todaySales.reduce((total, sale) => total + sale.quantity, 0),
+                revenue: todaySales.reduce((total, sale) => total + (sale.quantity * sale.unitPrice), 0)
+            };
+        }
+
+        // Update low stock alerts
+        function updateLowStockAlerts() {
+            const lowStockItems = warehouseData.inventory.filter(item => 
+                item.quantity < warehouseData.settings.lowStockThreshold
+            );
+            
+            document.getElementById('lowStockCount').textContent = `${lowStockItems.length} Items`;
+            
+            const tbody = document.getElementById('lowStockTable');
+            tbody.innerHTML = '';
+            
+            if (lowStockItems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">No low stock items</td></tr>';
+                return;
+            }
+            
+            lowStockItems.forEach(item => {
+                const product = warehouseData.products.find(p => p.id === item.productId);
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${product.name} (${product.size})</td>
+                    <td>
+                        <span class="product-badge badge-warning">${item.quantity}</span>
+                    </td>
+                    <td>
+                        <span class="product-badge badge-danger">Low Stock</span>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="showAddStockModal(${product.id})">
+                            ➕ Add Stock
+                        </button>
+                    </td>
+                `;
+            });
+        }
+
+        // Update recent transactions
+        function updateRecentTransactions() {
+            const recentTransactions = warehouseData.transactions
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                .slice(0, 5);
+            
+            const tbody = document.getElementById('recentTransactionsTable');
+            tbody.innerHTML = '';
+            
+            if (recentTransactions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">No recent transactions</td></tr>';
+                return;
+            }
+            
+            recentTransactions.forEach(transaction => {
+                const operator = warehouseData.operators.find(o => o.id === transaction.operatorId);
+                const time = new Date(transaction.timestamp).toLocaleTimeString();
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${time}</td>
+                    <td>
+                        <span class="product-badge ${getTransactionBadgeClass(transaction.type)}">
+                            ${transaction.type.replace('_', ' ')}
+                        </span>
+                    </td>
+                    <td>${operator ? operator.name : 'System'}</td>
+                    <td>₹${transaction.amount ? transaction.amount.toLocaleString() : '0'}</td>
+                `;
+            });
+        }
+
+        function getTransactionBadgeClass(type) {
+            switch(type) {
+                case 'sale': return 'badge-success';
+                case 'stock_added': return 'badge-info';
+                case 'stock_assigned': return 'badge-warning';
+                default: return 'badge-secondary';
+            }
+        }
+
+        // Dashboard Functions
+        function updateDashboard() {
+            updateAllStats();
+            updateCharts();
+        }
+
+        // Initialize Charts
+        function initializeCharts() {
+            initSalesChart();
+            initTopProductsChart();
+        }
+
+        function initSalesChart() {
+            const ctx = document.getElementById('salesChart');
+            if (!ctx) return;
+
+            charts.sales = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: getLast7Days(),
+                    datasets: [{
+                        label: 'Sales Revenue',
+                        data: getSalesDataForChart(),
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initTopProductsChart() {
+            const ctx = document.getElementById('topProductsChart');
+            if (!ctx) return;
+
+            const topProducts = getTopSellingProducts(5);
+            
+            charts.topProducts = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: topProducts.map(p => p.name),
+                    datasets: [{
+                        data: topProducts.map(p => p.sold),
+                        backgroundColor: [
+                            '#3B82F6',
+                            '#10B981',
+                            '#F59E0B',
+                            '#EF4444',
+                            '#8B5CF6'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function getLast7Days() {
+            const days = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                days.push(date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }));
+            }
+            return days;
+        }
+
+        function getSalesDataForChart() {
+            const data = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                
+                const daySales = warehouseData.sales
+                    .filter(sale => sale.date === dateStr)
+                    .reduce((total, sale) => total + (sale.quantity * sale.unitPrice), 0);
+                
+                data.push(daySales);
+            }
+            return data;
+        }
+
+        function getTopSellingProducts(limit = 5) {
+            const productSales = {};
+            
+            warehouseData.sales.forEach(sale => {
+                if (!productSales[sale.productId]) {
+                    const product = warehouseData.products.find(p => p.id === sale.productId);
+                    productSales[sale.productId] = {
+                        id: sale.productId,
+                        name: product ? product.name : 'Unknown',
+                        sold: 0
+                    };
+                }
+                productSales[sale.productId].sold += sale.quantity;
+            });
+            
+            return Object.values(productSales)
+                .sort((a, b) => b.sold - a.sold)
+                .slice(0, limit);
+        }
+
+        function updateCharts() {
+            if (charts.sales) {
+                charts.sales.data.datasets[0].data = getSalesDataForChart();
+                charts.sales.update();
+            }
+            
+            if (charts.topProducts) {
+                const topProducts = getTopSellingProducts(5);
+                charts.topProducts.data.labels = topProducts.map(p => p.name);
+                charts.topProducts.data.datasets[0].data = topProducts.map(p => p.sold);
+                charts.topProducts.update();
+            }
+        }
+
+        // Warehouse Management
+        function updateWarehouse() {
+            updateWarehouseStats();
+            displayWarehouseProducts();
+        }
+
+        function updateWarehouseStats() {
+            const totalValue = warehouseData.inventory.reduce((total, item) => {
+                const product = warehouseData.products.find(p => p.id === item.productId);
+                return total + (item.quantity * (product ? product.costPrice : 0));
+            }, 0);
+            
+            document.getElementById('totalStockValue').textContent = `₹${totalValue.toLocaleString()}`;
+            
+            const lowStockCount = warehouseData.inventory.filter(item => 
+                item.quantity < warehouseData.settings.lowStockThreshold
+            ).length;
+            document.getElementById('lowStockProducts').textContent = lowStockCount;
+            
+            const uniqueLocations = [...new Set(warehouseData.inventory.map(item => item.location))];
+            document.getElementById('totalLocations').textContent = uniqueLocations.length;
+        }
+
+        function displayWarehouseProducts() {
+            const container = document.getElementById('warehouseProductsGrid');
+            container.innerHTML = '';
+            
+            warehouseData.products.forEach(product => {
+                const inventory = warehouseData.inventory.find(inv => inv.productId === product.id);
+                const stock = inventory ? inventory.quantity : 0;
+                const location = inventory ? inventory.location : 'N/A';
+                
+                const stockStatus = stock < warehouseData.settings.lowStockThreshold ? 'Low' : 
+                                   stock < 50 ? 'Medium' : 'Good';
+                const stockBadgeClass = stockStatus === 'Low' ? 'badge-danger' : 
+                                       stockStatus === 'Medium' ? 'badge-warning' : 'badge-success';
+                
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.innerHTML = `
+                    <div class="product-header">
+                        <div>
+                            <div class="product-title">${product.name}</div>
+                            <div class="product-subtitle">${product.size} • ${product.category}</div>
+                        </div>
+                        <span class="product-badge ${stockBadgeClass}">${stockStatus}</span>
+                    </div>
+                    
+                    <div class="product-metrics">
+                        <div class="metric">
+                            <div class="metric-value">${stock}</div>
+                            <div class="metric-label">In Stock</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">₹${product.price}</div>
+                            <div class="metric-label">Price</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin: 1rem 0;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <span>Cost Price:</span>
+                            <span>₹${product.costPrice}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <span>Profit/Unit:</span>
+                            <span class="font-semibold" style="color: var(--secondary);">₹${product.price - product.costPrice}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+                            <span>Location:</span>
+                            <span>${location}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="product-actions">
+                        <button class="btn btn-primary btn-sm" onclick="showAddStockModal(${product.id})">
+                            ➕ Add Stock
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="viewProductDetails(${product.id})">
+                            👁️ Details
+                        </button>
+                    </div>
+                `;
+                
+                container.appendChild(productCard);
+            });
+        }
+
+        function filterWarehouseProducts() {
+            const searchTerm = document.getElementById('warehouseSearch').value.toLowerCase();
+            const stockFilter = document.getElementById('stockFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            
+            const filteredProducts = warehouseData.products.filter(product => {
+                const inventory = warehouseData.inventory.find(inv => inv.productId === product.id);
+                const stock = inventory ? inventory.quantity : 0;
+                
+                // Search filter
+                const matchesSearch = product.name.toLowerCase().includes(searchTerm) || 
+                                    product.size.toLowerCase().includes(searchTerm);
+                
+                // Stock filter
+                let matchesStock = true;
+                if (stockFilter === 'low') {
+                    matchesStock = stock < 20;
+                } else if (stockFilter === 'medium') {
+                    matchesStock = stock >= 20 && stock <= 50;
+                } else if (stockFilter === 'high') {
+                    matchesStock = stock > 50;
+                }
+                
+                // Category filter
+                const matchesCategory = !categoryFilter || product.category === categoryFilter;
+                
+                return matchesSearch && matchesStock && matchesCategory;
+            });
+            
+            // Re-render filtered products
+            const container = document.getElementById('warehouseProductsGrid');
+            container.innerHTML = '';
+            
+            filteredProducts.forEach(product => {
+                // Same product card rendering logic as in displayWarehouseProducts
+                const inventory = warehouseData.inventory.find(inv => inv.productId === product.id);
+                const stock = inventory ? inventory.quantity : 0;
+                const location = inventory ? inventory.location : 'N/A';
+                
+                const stockStatus = stock < warehouseData.settings.lowStockThreshold ? 'Low' : 
+                                   stock < 50 ? 'Medium' : 'Good';
+                const stockBadgeClass = stockStatus === 'Low' ? 'badge-danger' : 
+                                       stockStatus === 'Medium' ? 'badge-warning' : 'badge-success';
+                
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.innerHTML = `
+                    <div class="product-header">
+                        <div>
+                            <div class="product-title">${product.name}</div>
+                            <div class="product-subtitle">${product.size} • ${product.category}</div>
+                        </div>
+                        <span class="product-badge ${stockBadgeClass}">${stockStatus}</span>
+                    </div>
+                    
+                    <div class="product-metrics">
+                        <div class="metric">
+                            <div class="metric-value">${stock}</div>
+                            <div class="metric-label">In Stock</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">₹${product.price}</div>
+                            <div class="metric-label">Price</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin: 1rem 0;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <span>Cost Price:</span>
+                            <span>₹${product.costPrice}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                            <span>Profit/Unit:</span>
+                            <span class="font-semibold" style="color: var(--secondary);">₹${product.price - product.costPrice}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+                            <span>Location:</span>
+                            <span>${location}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="product-actions">
+                        <button class="btn btn-primary btn-sm" onclick="showAddStockModal(${product.id})">
+                            ➕ Add Stock
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="viewProductDetails(${product.id})">
+                            👁️ Details
+                        </button>
+                    </div>
+                `;
+                
+                container.appendChild(productCard);
+            });
+        }
+
+        // Operator Management
+        function updateOperators() {
+            updateOperatorStats();
+            displayOperators();
+            populateOperatorSelects();
+            displayAssignments();
+        }
+
+        function updateOperatorStats() {
+            document.getElementById('activeOperators').textContent = warehouseData.operators.length;
+            
+            const totalAssigned = warehouseData.assignments.reduce((total, assignment) => 
+                total + assignment.quantity, 0);
+            document.getElementById('totalAssignedStock').textContent = totalAssigned;
+            
+            const todaySales = getTodaySales();
+            document.getElementById('todayOperatorSales').textContent = `₹${todaySales.revenue.toLocaleString()}`;
+        }
+
+        function displayOperators() {
+            const tbody = document.getElementById('operatorsTable');
+            tbody.innerHTML = '';
+            
+            if (warehouseData.operators.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No operators added yet</td></tr>';
+                return;
+            }
+            
+            warehouseData.operators.forEach(operator => {
+                const assignedStock = getOperatorAssignedStock(operator.id);
+                const todaySales = getOperatorTodaySales(operator.id);
+                const performance = calculateOperatorPerformance(operator.id);
+                
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${operator.id}</td>
+                    <td>
+                        <div class="font-semibold">${operator.name}</div>
+                        <div class="text-sm" style="color: var(--gray-500);">${operator.email || 'No email'}</div>
+                    </td>
+                    <td>${operator.contact}</td>
+                    <td>
+                        <span class="product-badge ${assignedStock > 0 ? 'badge-success' : 'badge-warning'}">
+                            ${assignedStock} units
+                        </span>
+                    </td>
+                    <td>₹${todaySales.toLocaleString()}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 50px; height: 6px; background: var(--gray-200); border-radius: 3px; overflow: hidden;">
+                                <div style="width: ${performance}%; height: 100%; background: ${performance > 70 ? 'var(--success)' : performance > 40 ? 'var(--warning)' : 'var(--danger)'};"></div>
+                            </div>
+                            <span class="text-sm">${performance}%</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="flex gap-1">
+                            <button class="btn btn-outline btn-sm" onclick="viewOperatorDetails(${operator.id})">
+                                👁️
+                            </button>
+                            <button class="btn btn-accent btn-sm" onclick="editOperator(${operator.id})">
+                                ✏️
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteOperator(${operator.id})">
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                `;
+            });
+        }
+
+        function getOperatorAssignedStock(operatorId) {
+            return warehouseData.assignments
+                .filter(assignment => assignment.operatorId === operatorId)
+                .reduce((total, assignment) => total + assignment.quantity, 0);
+        }
+
+        function getOperatorTodaySales(operatorId) {
+            const today = new Date().toISOString().split('T')[0];
+            return warehouseData.sales
+                .filter(sale => sale.operatorId === operatorId && sale.date === today)
+                .reduce((total, sale) => total + (sale.quantity * sale.unitPrice), 0);
+        }
+
+        function calculateOperatorPerformance(operatorId) {
+            const assignments = warehouseData.assignments
+                .filter(assignment => assignment.operatorId === operatorId);
+            
+            if (assignments.length === 0) return 0;
+            
+            const totalAssigned = assignments.reduce((total, assignment) => total + assignment.quantity, 0);
+            const totalSold = warehouseData.sales
+                .filter(sale => sale.operatorId === operatorId)
+                .reduce((total, sale) => total + sale.quantity, 0);
+            
+            return totalAssigned > 0 ? Math.round((totalSold / totalAssigned) * 100) : 0;
+        }
+
+        function populateOperatorSelects() {
+            const selects = ['assignOperator', 'salesOperator', 'reportOperator', 'invoiceOperator'];
+            
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    const currentValue = select.value;
+                    select.innerHTML = '<option value="">Choose operator...</option>';
+                    
+                    warehouseData.operators.forEach(operator => {
+                        const option = document.createElement('option');
+                        option.value = operator.id;
+                        option.textContent = operator.name;
+                        select.appendChild(option);
+                    });
+                    
+                    if (currentValue) select.value = currentValue;
+                }
+            });
+        }
+
+        function displayAssignments() {
+            const tbody = document.getElementById('assignmentsTable');
+            tbody.innerHTML = '';
+            
+            if (warehouseData.assignments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No assignments yet</td></tr>';
+                return;
+            }
+            
+            const recentAssignments = warehouseData.assignments.slice(-10).reverse();
+            
+            recentAssignments.forEach(assignment => {
+                const operator = warehouseData.operators.find(o => o.id === assignment.operatorId);
+                const product = warehouseData.products.find(p => p.id === assignment.productId);
+                const sold = getAssignmentSoldQuantity(assignment.id);
+                const remaining = assignment.quantity - sold;
+                
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${new Date(assignment.date).toLocaleDateString()}</td>
+                    <td>${operator ? operator.name : 'Unknown'}</td>
+                    <td>${product ? `${product.name} (${product.size})` : 'Unknown'}</td>
+                    <td>
+                        <span class="product-badge badge-info">${assignment.quantity}</span>
+                    </td>
+                    <td>
+                        <span class="product-badge badge-success">${sold}</span>
+                    </td>
+                    <td>
+                        <span class="product-badge ${remaining > 0 ? 'badge-warning' : 'badge-success'}">${remaining}</span>
+                    </td>
+                    <td>
+                        <div class="flex gap-1">
+                            <button class="btn btn-outline btn-sm" onclick="viewAssignmentDetails(${assignment.id})">
+                                👁️
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteAssignment(${assignment.id})">
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                `;
+            });
+        }
+
+        function getAssignmentSoldQuantity(assignmentId) {
+            return warehouseData.sales
+                .filter(sale => sale.assignmentId === assignmentId)
+                .reduce((total, sale) => total + sale.quantity, 0);
+        }
+
+        function assignStock() {
+            const operatorId = parseInt(document.getElementById('assignOperator').value);
+            const productId = parseInt(document.getElementById('assignProduct').value);
+            const quantity = parseInt(document.getElementById('assignQuantity').value);
+            
+            if (!operatorId || !productId || !quantity || quantity <= 0) {
+                showAlert('Please fill all fields with valid values', 'danger');
+                return;
+            }
+            
+            // Check if enough stock is available
+            const inventory = warehouseData.inventory.find(inv => inv.productId === productId);
+            if (!inventory || inventory.quantity < quantity) {
+                showAlert('Not enough stock available in warehouse', 'danger');
+                return;
+            }
+            
+            // Create assignment
+            const assignment = {
+                id: generateId(),
+                operatorId,
+                productId,
+                quantity,
+                date: new Date().toISOString().split('T')[0],
+                timestamp: new Date().toISOString()
+            };
+            
+            warehouseData.assignments.push(assignment);
+            
+            // Update inventory
+            inventory.quantity -= quantity;
+            
+            // Add transaction
+            addTransaction('stock_assigned', { operatorId, productId, quantity });
+            
+            // Reset form
+            document.getElementById('assignQuantity').value = '';
+            
+            saveDataToStorage();
+            updateOperators();
+            updateWarehouse();
+            
+            showAlert('Stock assigned successfully!', 'success');
+        }
+
+        // Product Analytics
+        function updateProductAnalytics() {
+            updateProductPerformanceChart();
+            updateTopSellingProducts();
+            updateMostProfitableProducts();
+        }
+
+        function updateProductPerformanceChart() {
+            const ctx = document.getElementById('productPerformanceChart');
+            if (!ctx) return;
+
+            const productData = getProductPerformanceData();
+            
+            if (charts.productPerformance) {
+                charts.productPerformance.destroy();
+            }
+            
+            charts.productPerformance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: productData.map(p => p.name),
+                    datasets: [
+                        {
+                            label: 'Units Sold',
+                            data: productData.map(p => p.sold),
+                            backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                            borderColor: '#3B82F6',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Revenue (₹)',
+                            data: productData.map(p => p.revenue),
+                            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                            borderColor: '#10B981',
+                            borderWidth: 1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Units Sold'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Revenue (₹)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function getProductPerformanceData() {
+            const period = document.getElementById('productAnalyticsPeriod').value;
+            const filteredSales = filterSalesByPeriod(warehouseData.sales, period);
+            
+            const productStats = {};
+            
+            filteredSales.forEach(sale => {
+                if (!productStats[sale.productId]) {
+                    const product = warehouseData.products.find(p => p.id === sale.productId);
+                    productStats[sale.productId] = {
+                        id: sale.productId,
+                        name: product ? product.name : 'Unknown',
+                        sold: 0,
+                        revenue: 0
+                    };
+                }
+                
+                productStats[sale.productId].sold += sale.quantity;
+                productStats[sale.productId].revenue += sale.quantity * sale.unitPrice;
+            });
+            
+            return Object.values(productStats)
+                .sort((a, b) => b.sold - a.sold)
+                .slice(0, 10);
+        }
+
+        function filterSalesByPeriod(sales, period) {
+            const now = new Date();
+            let startDate;
+            
+            switch(period) {
+                case 'today':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    break;
+                case 'week':
+                    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    break;
+                case 'month':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                    break;
+                default:
+                    return sales;
+            }
+            
+            return sales.filter(sale => new Date(sale.date) >= startDate);
+        }
+
+        function updateTopSellingProducts() {
+            const period = document.getElementById('productAnalyticsPeriod').value;
+            const productData = getProductPerformanceData();
+            
+            const container = document.getElementById('topSellingProducts');
+            container.innerHTML = '';
+            
+            productData.slice(0, 5).forEach((product, index) => {
+                const item = document.createElement('div');
+                item.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--gray-200);';
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div style="width: 24px; height: 24px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;">
+                            ${index + 1}
+                        </div>
+                        <div>
+                            <div class="font-semibold">${product.name}</div>
+                            <div class="text-sm" style="color: var(--gray-500);">${product.sold} units sold</div>
+                        </div>
+                    </div>
+                    <div class="font-bold" style="color: var(--secondary);">₹${product.revenue.toLocaleString()}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function updateMostProfitableProducts() {
+            const period = document.getElementById('productAnalyticsPeriod').value;
+            const filteredSales = filterSalesByPeriod(warehouseData.sales, period);
+            
+            const productProfits = {};
+            
+            filteredSales.forEach(sale => {
+                const product = warehouseData.products.find(p => p.id === sale.productId);
+                if (!product) return;
+                
+                if (!productProfits[sale.productId]) {
+                    productProfits[sale.productId] = {
+                        id: sale.productId,
+                        name: product.name,
+                        profit: 0,
+                        sold: 0
+                    };
+                }
+                
+                const profit = (sale.unitPrice - product.costPrice) * sale.quantity;
+                productProfits[sale.productId].profit += profit;
+                productProfits[sale.productId].sold += sale.quantity;
+            });
+            
+            const sortedProfits = Object.values(productProfits)
+                .sort((a, b) => b.profit - a.profit)
+                .slice(0, 5);
+            
+            const container = document.getElementById('mostProfitableProducts');
+            container.innerHTML = '';
+            
+            sortedProfits.forEach((product, index) => {
+                const item = document.createElement('div');
+                item.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--gray-200);';
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div style="width: 24px; height: 24px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;">
+                            ${index + 1}
+                        </div>
+                        <div>
+                            <div class="font-semibold">${product.name}</div>
+                            <div class="text-sm" style="color: var(--gray-500);">${product.sold} units sold</div>
+                        </div>
+                    </div>
+                    <div class="font-bold" style="color: var(--accent);">₹${product.profit.toLocaleString()}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Sales Management
+        function updateSales() {
+            updateSalesStats();
+            updateSalesByOperatorChart();
+            updateRecentSalesTable();
+        }
+
+        function updateSalesStats() {
+            const today = getTodaySales();
+            document.getElementById('totalSalesToday').textContent = `₹${today.revenue.toLocaleString()}`;
+            
+            const week = getWeekSales();
+            document.getElementById('totalSalesWeek').textContent = `₹${week.toLocaleString()}`;
+            
+            const month = getMonthSales();
+            document.getElementById('totalSalesMonth').textContent = `₹${month.toLocaleString()}`;
+            
+            const todayProfit = getTodayProfit();
+            document.getElementById('totalProfitToday').textContent = `₹${todayProfit.toLocaleString()}`;
+        }
+
+        function getWeekSales() {
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            
+            return warehouseData.sales
+                .filter(sale => new Date(sale.date) >= weekAgo)
+                .reduce((total, sale) => total + (sale.quantity * sale.unitPrice), 0);
+        }
+
+        function getMonthSales() {
+            const now = new Date();
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            
+            return warehouseData.sales
+                .filter(sale => new Date(sale.date) >= monthStart)
+                .reduce((total, sale) => total + (sale.quantity * sale.unitPrice), 0);
+        }
+
+        function getTodayProfit() {
+            const today = new Date().toISOString().split('T')[0];
+            
+            return warehouseData.sales
+                .filter(sale => sale.date === today)
+                .reduce((total, sale) => {
+                    const product = warehouseData.products.find(p => p.id === sale.productId);
+                    if (!product) return total;
+                    return total + ((sale.unitPrice - product.costPrice) * sale.quantity);
+                }, 0);
+        }
+
+        function updateSalesByOperatorChart() {
+            const ctx = document.getElementById('salesByOperatorChart');
+            if (!ctx) return;
+
+            const operatorSales = getOperatorSalesData();
+            
+            if (charts.salesByOperator) {
+                charts.salesByOperator.destroy();
+            }
+            
+            charts.salesByOperator = new Chart(ctx, {
+                type: 'horizontalBar',
+                data: {
+                    labels: operatorSales.map(op => op.name),
+                    datasets: [{
+                        label: 'Sales Revenue (₹)',
+                        data: operatorSales.map(op => op.revenue),
+                        backgroundColor: [
+                            '#3B82F6',
+                            '#10B981',
+                            '#F59E0B',
+                            '#EF4444',
+                            '#8B5CF6',
+                            '#F97316',
+                            '#06B6D4'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function getOperatorSalesData() {
+            const operatorStats = {};
+            
+            warehouseData.sales.forEach(sale => {
+                if (!operatorStats[sale.operatorId]) {
+                    const operator = warehouseData.operators.find(o => o.id === sale.operatorId);
+                    operatorStats[sale.operatorId] = {
+                        id: sale.operatorId,
+                        name: operator ? operator.name : 'Unknown',
+                        revenue: 0,
+                        quantity: 0
+                    };
+                }
+                
+                operatorStats[sale.operatorId].revenue += sale.quantity * sale.unitPrice;
+                operatorStats[sale.operatorId].quantity += sale.quantity;
+            });
+            
+            return Object.values(operatorStats)
+                .sort((a, b) => b.revenue - a.revenue)
+                .slice(0, 7);
+        }
+
+        function updateRecentSalesTable() {
+            const tbody = document.getElementById('recentSalesTable');
+            tbody.innerHTML = '';
+            
+            const recentSales = warehouseData.sales
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                .slice(0, 20);
+            
+            if (recentSales.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">No sales recorded yet</td></tr>';
+                return;
+            }
+            
+            recentSales.forEach(sale => {
+                const operator = warehouseData.operators.find(o => o.id === sale.operatorId);
+                const product = warehouseData.products.find(p => p.id === sale.productId);
+                const profit = product ? (sale.unitPrice - product.costPrice) * sale.quantity : 0;
+                
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>
+                        <div>${new Date(sale.date).toLocaleDateString()}</div>
+                        <div class="text-sm" style="color: var(--gray-500);">${new Date(sale.timestamp).toLocaleTimeString()}</div>
+                    </td>
+                    <td>${operator ? operator.name : 'Unknown'}</td>
+                    <td>${product ? `${product.name} (${product.size})` : 'Unknown'}</td>
+                    <td>
+                        <span class="product-badge badge-info">${sale.quantity}</span>
+                    </td>
+                    <td>₹${sale.unitPrice}</td>
+                    <td class="font-semibold">₹${(sale.quantity * sale.unitPrice).toLocaleString()}</td>
+                    <td style="color: var(--secondary);" class="font-semibold">₹${profit.toLocaleString()}</td>
+                    <td>
+                        <div class="flex gap-1">
+                            <button class="btn btn-outline btn-sm" onclick="viewSaleDetails('${sale.id}')">
+                                👁️
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteSale('${sale.id}')">
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                `;
+            });
+        }
+
+        // Reports Management
+        function updateReports() {
+            populateReportSelects();
+            setupReportTypeHandling();
+        }
+
+        function populateReportSelects() {
+            populateOperatorSelects();
+        }
+
+        function setupReportTypeHandling() {
+            document.getElementById('reportType').addEventListener('change', handleReportTypeChange);
+        }
+
+        function handleReportTypeChange() {
+            const reportType = document.getElementById('reportType').value;
+            const operatorGroup = document.getElementById('operatorSelectGroup');
+            
+            if (reportType === 'operator') {
+                operatorGroup.style.display = 'block';
+            } else {
+                operatorGroup.style.display = 'none';
+            }
+        }
+
+        function generateReport() {
+            const reportType = document.getElementById('reportType').value;
+            const startDate = document.getElementById('reportStartDate').value;
+            const endDate = document.getElementById('reportEndDate').value;
+            
+            if (!startDate || !endDate) {
+                showAlert('Please select date range', 'warning');
+                return;
+            }
+            
+            let reportData;
+            
+            switch(reportType) {
+                case 'daily':
+                    reportData = generateDailyReport(startDate, endDate);
+                    break;
+                case 'weekly':
+                    reportData = generateWeeklyReport(startDate, endDate);
+                    break;
+                case 'monthly':
+                    reportData = generateMonthlyReport(startDate, endDate);
+                    break;
+                case 'operator':
+                    const operatorId = document.getElementById('reportOperator').value;
+                    reportData = generateOperatorReport(operatorId, startDate, endDate);
+                    break;
+                case 'product':
+                    reportData = generateProductReport(startDate, endDate);
+                    break;
+                case 'profit':
+                    reportData = generateProfitReport(startDate, endDate);
+                    break;
+                case 'inventory':
+                    reportData = generateInventoryReport();
+                    break;
+                default:
+                    showAlert('Invalid report type', 'danger');
+                    return;
+            }
+            
+            displayReportResults(reportData, reportType);
+        }
+
+        function generateDailyReport(startDate, endDate) {
+            const filteredSales = warehouseData.sales.filter(sale => 
+                sale.date >= startDate && sale.date <= endDate
+            );
+            
+            const dailyStats = {};
+            
+            filteredSales.forEach(sale => {
+                if (!dailyStats[sale.date]) {
+                    dailyStats[sale.date] = {
+                        date: sale.date,
+                        totalSales: 0,
+                        totalRevenue: 0,
+                        totalProfit: 0,
+                        transactions: 0
+                    };
+                }
+                
+                const product = warehouseData.products.find(p => p.id === sale.productId);
+                const profit = product ? (sale.unitPrice - product.costPrice) * sale.quantity : 0;
+                
+                dailyStats[sale.date].totalSales += sale.quantity;
+                dailyStats[sale.date].totalRevenue += sale.quantity * sale.unitPrice;
+                dailyStats[sale.date].totalProfit += profit;
+                dailyStats[sale.date].transactions++;
+            });
+            
+            return {
+                title: 'Daily Sales Report',
+                headers: ['Date', 'Total Sales', 'Revenue', 'Profit', 'Transactions'],
+                data: Object.values(dailyStats).sort((a, b) => new Date(a.date) - new Date(b.date))
+            };
+        }
+
+        function generateOperatorReport(operatorId, startDate, endDate) {
+            const operator = warehouseData.operators.find(o => o.id == operatorId);
+            
+            if (!operator && operatorId) {
+                return { title: 'Operator Report', headers: [], data: [], error: 'Operator not found' };
+            }
+            
+            const filteredSales = warehouseData.sales.filter(sale => {
+                const dateMatch = sale.date >= startDate && sale.date <= endDate;
+                const operatorMatch = !operatorId || sale.operatorId == operatorId;
+                return dateMatch && operatorMatch;
+            });
+            
+            const operatorStats = {};
+            
+            filteredSales.forEach(sale => {
+                const saleOperator = warehouseData.operators.find(o => o.id === sale.operatorId);
+                const operatorKey = saleOperator ? saleOperator.id : 'unknown';
+                
+                if (!operatorStats[operatorKey]) {
+                    operatorStats[operatorKey] = {
+                        name: saleOperator ? saleOperator.name : 'Unknown',
+                        totalSales: 0,
+                        totalRevenue: 0,
+                        totalProfit: 0,
+                        transactions: 0
+                    };
+                }
+                
+                const product = warehouseData.products.find(p => p.id === sale.productId);
+                const profit = product ? (sale.unitPrice - product.costPrice) * sale.quantity : 0;
+                
+                operatorStats[operatorKey].totalSales += sale.quantity;
+                operatorStats[operatorKey].totalRevenue += sale.quantity * sale.unitPrice;
+                operatorStats[operatorKey].totalProfit += profit;
+                operatorStats[operatorKey].transactions++;
+            });
+            
+            return {
+                title: operatorId ? `${operator.name} Performance Report` : 'All Operators Performance Report',
+                headers: ['Operator', 'Total Sales', 'Revenue', 'Profit', 'Transactions'],
+                data: Object.values(operatorStats).sort((a, b) => b.totalRevenue - a.totalRevenue)
+            };
+        }
+
+        function generateProductReport(startDate, endDate) {
+            const filteredSales = warehouseData.sales.filter(sale => 
+                sale.date >= startDate && sale.date <= endDate
+            );
+            
+            const productStats = {};
+            
+            filteredSales.forEach(sale => {
+                if (!productStats[sale.productId]) {
+                    const product = warehouseData.products.find(p => p.id === sale.productId);
+                    productStats[sale.productId] = {
+                        name: product ? `${product.name} (${product.size})` : 'Unknown',
+                        totalSales: 0,
+                        totalRevenue: 0,
+                        totalProfit: 0,
+                        avgPrice: 0
+                    };
+                }
+                
+                const product = warehouseData.products.find(p => p.id === sale.productId);
+                const profit = product ? (sale.unitPrice - product.costPrice) * sale.quantity : 0;
+                
+                productStats[sale.productId].totalSales += sale.quantity;
+                productStats[sale.productId].totalRevenue += sale.quantity * sale.unitPrice;
+                productStats[sale.productId].totalProfit += profit;
+                productStats[sale.productId].avgPrice = productStats[sale.productId].totalRevenue / productStats[sale.productId].totalSales;
+            });
+            
+            return {
+                title: 'Product Sales Report',
+                headers: ['Product', 'Units Sold', 'Revenue', 'Profit', 'Avg Price'],
+                data: Object.values(productStats).sort((a, b) => b.totalSales - a.totalSales)
+            };
+        }
+
+        function generateProfitReport(startDate, endDate) {
+            const filteredSales = warehouseData.sales.filter(sale => 
+                sale.date >= startDate && sale.date <= endDate
+            );
+            
+            const profitStats = {};
+            
+            filteredSales.forEach(sale => {
+                const product = warehouseData.products.find(p => p.id === sale.productId);
+                if (!product) return;
+                
+                if (!profitStats[sale.productId]) {
+                    profitStats[sale.productId] = {
+                        name: `${product.name} (${product.size})`,
+                        costPrice: product.costPrice,
+                        sellingPrice: product.price,
+                        unitsSold: 0,
+                        totalProfit: 0,
+                        profitMargin: 0
+                    };
+                }
+                
+                const profit = (sale.unitPrice - product.costPrice) * sale.quantity;
+                profitStats[sale.productId].unitsSold += sale.quantity;
+                profitStats[sale.productId].totalProfit += profit;
+                profitStats[sale.productId].profitMargin = ((sale.unitPrice - product.costPrice) / sale.unitPrice * 100);
+            });
+            
+            return {
+                title: 'Profit Analysis Report',
+                headers: ['Product', 'Cost Price', 'Selling Price', 'Units Sold', 'Total Profit', 'Margin %'],
+                data: Object.values(profitStats).sort((a, b) => b.totalProfit - a.totalProfit)
+            };
+        }
+
+        function generateInventoryReport() {
+            const inventoryData = warehouseData.inventory.map(item => {
+                const product = warehouseData.products.find(p => p.id === item.productId);
+                const totalValue = item.quantity * (product ? product.costPrice : 0);
+                
+                return {
+                    name: product ? `${product.name} (${product.size})` : 'Unknown',
+                    quantity: item.quantity,
+                    location: item.location,
+                    costPrice: product ? product.costPrice : 0,
+                    totalValue: totalValue,
+                    status: item.quantity < warehouseData.settings.lowStockThreshold ? 'Low Stock' : 'Good'
+                };
+            });
+            
+            return {
+                title: 'Inventory Report',
+                headers: ['Product', 'Quantity', 'Location', 'Cost Price', 'Total Value', 'Status'],
+                data: inventoryData.sort((a, b) => b.totalValue - a.totalValue)
+            };
+        }
+
+        function displayReportResults(reportData, reportType) {
+            const resultsDiv = document.getElementById('reportResults');
+            const table = document.getElementById('reportTable');
+            
+            if (reportData.error) {
+                showAlert(reportData.error, 'danger');
+                return;
+            }
+            
+            // Clear existing table
+            table.innerHTML = '';
+            
+            // Create header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            
+            reportData.headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create body
+            const tbody = document.createElement('tbody');
+            
+            if (reportData.data.length === 0) {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = reportData.headers.length;
+                cell.textContent = 'No data available for the selected period';
+                cell.className = 'text-center';
+                row.appendChild(cell);
+                tbody.appendChild(row);
+            } else {
+                reportData.data.forEach(item => {
+                    const row = document.createElement('tr');
+                    
+                    Object.values(item).forEach(value => {
+                        const cell = document.createElement('td');
+                        
+                        // Format numbers
+                        if (typeof value === 'number') {
+                            if (value % 1 === 0) {
+                                cell.textContent = value.toLocaleString();
+                            } else {
+                                cell.textContent = value.toFixed(2);
+                            }
+                        } else {
+                            cell.textContent = value;
+                        }
+                        
+                        row.appendChild(cell);
+                    });
+                    
+                    tbody.appendChild(row);
+                });
+            }
+            
+            table.appendChild(tbody);
+            
+            // Update summary
+            document.getElementById('reportSummary').textContent = 
+                `Generated ${reportData.data.length} records • ${new Date().toLocaleString()}`;
+            
+            // Show results
+            resultsDiv.style.display = 'block';
+        }
+
+        // Billing Management
+        function updateBilling() {
+            updateBillingStats();
+            updateInvoicesTable();
+        }
+
+        function updateBillingStats() {
+            const totalInvoices = warehouseData.invoices.length;
+            document.getElementById('totalInvoices').textContent = totalInvoices;
+            
+            const pendingAmount = warehouseData.invoices
+                .filter(invoice => invoice.status === 'pending')
+                .reduce((total, invoice) => total + invoice.total, 0);
+            document.getElementById('pendingPayments').textContent = `₹${pendingAmount.toLocaleString()}`;
+            
+            const paidAmount = warehouseData.invoices
+                .filter(invoice => invoice.status === 'paid')
+                .reduce((total, invoice) => total + invoice.total, 0);
+            document.getElementById('paidInvoices').textContent = `₹${paidAmount.toLocaleString()}`;
+            
+            const overdueCount = warehouseData.invoices
+                .filter(invoice => invoice.status === 'pending' && new Date(invoice.dueDate) < new Date())
+                .length;
+            document.getElementById('overdueInvoices').textContent = overdueCount;
+        }
+
+        function updateInvoicesTable() {
+            const tbody = document.getElementById('invoicesTable');
+            tbody.innerHTML = '';
+            
+            if (warehouseData.invoices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No invoices created yet</td></tr>';
+                return;
+            }
+            
+            const sortedInvoices = warehouseData.invoices
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedInvoices.forEach(invoice => {
+                const operator = warehouseData.operators.find(o => o.id === invoice.operatorId);
+                const statusBadge = getInvoiceStatusBadge(invoice.status);
+                const isOverdue = invoice.status === 'pending' && new Date(invoice.dueDate) < new Date();
+                
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td class="font-semibold">${invoice.number}</td>
+                    <td>${new Date(invoice.date).toLocaleDateString()}</td>
+                    <td>${operator ? operator.name : 'Unknown'}</td>
+                    <td class="font-semibold">₹${invoice.total.toLocaleString()}</td>
+                    <td>
+                        <span class="product-badge ${statusBadge.class}">${statusBadge.text}</span>
+                        ${isOverdue ? '<span class="product-badge badge-danger ml-1">Overdue</span>' : ''}
+                    </td>
+                    <td>${new Date(invoice.dueDate).toLocaleDateString()}</td>
+                    <td>
+                        <div class="flex gap-1">
+                            <button class="btn btn-outline btn-sm" onclick="viewInvoice('${invoice.id}')">
+                                👁️
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="printInvoice('${invoice.id}')">
+                                🖨️
+                            </button>
+                            ${invoice.status === 'pending' ? 
+                                `<button class="btn btn-success btn-sm" onclick="markInvoicePaid('${invoice.id}')">
+                                    ✅
+                                </button>` : ''
+                            }
+                            <button class="btn btn-danger btn-sm" onclick="deleteInvoice('${invoice.id}')">
+                                🗑️
+                            </button>
+                        </div>
+                    </td>
+                `;
+            });
+        }
+
+        function getInvoiceStatusBadge(status) {
+            switch(status) {
+                case 'pending':
+                    return { class: 'badge-warning', text: 'Pending' };
+                case 'paid':
+                    return { class: 'badge-success', text: 'Paid' };
+                case 'overdue':
+                    return { class: 'badge-danger', text: 'Overdue' };
+                case 'cancelled':
+                    return { class: 'badge-secondary', text: 'Cancelled' };
+                default:
+                    return { class: 'badge-secondary', text: status };
+            }
+        }
+
+        // Modal Functions
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function showAddProductModal() {
+            document.getElementById('newProductName').value = '';
+            document.getElementById('newProductSize').value = '';
+            document.getElementById('newProductCategory').value = 'cola';
+            document.getElementById('newProductCostPrice').value = '';
+            document.getElementById('newProductPrice').value = '';
+            document.getElementById('newProductStock').value = '';
+            document.getElementById('newProductLocation').value = '';
+            showModal('addProductModal');
+        }
+
+        function showAddOperatorModal() {
+            document.getElementById('newOperatorName').value = '';
+            document.getElementById('newOperatorContact').value = '';
+            document.getElementById('newOperatorEmail').value = '';
+            document.getElementById('newOperatorAddress').value = '';
+            document.getElementById('newOperatorEmergencyContact').value = '';
+            showModal('addOperatorModal');
+        }
+
+        function showAddStockModal(productId) {
+            const product = warehouseData.products.find(p => p.id === productId);
+            const inventory = warehouseData.inventory.find(inv => inv.productId === productId);
+            
+            if (!product) return;
+            
+            document.getElementById('stockProductName').value = `${product.name} (${product.size})`;
+            document.getElementById('currentStock').value = inventory ? inventory.quantity : 0;
+            document.getElementById('addStockQuantity').value = '';
+            document.getElementById('stockLocation').value = inventory ? inventory.location : '';
+            document.getElementById('stockSupplier').value = '';
+            document.getElementById('stockCostPrice').value = product.costPrice;
+            
+            // Store productId for use in addStockToWarehouse
+            document.getElementById('addStockModal').dataset.productId = productId;
+            
+            showModal('addStockModal');
+        }
+
+        function showRecordSalesModal() {
+            document.getElementById('salesOperator').value = '';
+            document.getElementById('salesDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('salesProductsContainer').innerHTML = '';
+            document.getElementById('salesSummary').style.display = 'none';
+            
+            populateOperatorSelects();
+            showModal('recordSalesModal');
+        }
+
+        function createNewInvoice() {
+            // Generate invoice number
+            const invoiceNumber = 'INV-' + Date.now().toString(36).toUpperCase();
+            document.getElementById('invoiceNumber').value = invoiceNumber;
+            
+            // Set dates
+            document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 30);
+            document.getElementById('invoiceDueDate').value = dueDate.toISOString().split('T')[0];
+            
+            // Clear operator selection
+            document.getElementById('invoiceOperator').value = '';
+            
+            // Reset invoice items
+            const container = document.getElementById('invoiceItemsContainer');
+            container.innerHTML = '';
+            addInvoiceItem();
+            
+            // Clear totals
+            updateInvoiceTotals();
+            
+            // Clear notes
+            document.getElementById('invoiceNotes').value = '';
+            
+            populateOperatorSelects();
+            populateProductSelects();
+            showModal('createInvoiceModal');
+        }
+
+        // Product Management Functions
+        function addNewProduct() {
+            const name = document.getElementById('newProductName').value.trim();
+            const size = document.getElementById('newProductSize').value.trim();
+            const category = document.getElementById('newProductCategory').value;
+            const costPrice = parseFloat(document.getElementById('newProductCostPrice').value);
+            const price = parseFloat(document.getElementById('newProductPrice').value);
+            const stock = parseInt(document.getElementById('newProductStock').value) || 0;
+            const location = document.getElementById('newProductLocation').value.trim() || 'A1';
+            
+            if (!name || !size || !costPrice || !price) {
+                showAlert('Please fill all required fields', 'danger');
+                return;
+            }
+            
+            if (price <= costPrice) {
+                showAlert('Selling price must be greater than cost price', 'warning');
+                return;
+            }
+            
+            // Create new product
+            const newProduct = {
+                id: generateId(),
+                name,
+                size,
+                category,
+                costPrice,
+                price
+            };
+            
+            warehouseData.products.push(newProduct);
+            
+            // Create inventory entry
+            warehouseData.inventory.push({
+                productId: newProduct.id,
+                quantity: stock,
+                location,
+                lastUpdated: new Date().toISOString()
+            });
+            
+            // Add transaction
+            if (stock > 0) {
+                addTransaction('stock_added', { productId: newProduct.id, quantity: stock });
+            }
+            
+            saveDataToStorage();
+            closeModal('addProductModal');
+            updateWarehouse();
+            updateAllStats();
+            
+            showAlert(`Product "${name}" added successfully!`, 'success');
+        }
+
+        // Operator Management Functions
+        function addNewOperator() {
+            const name = document.getElementById('newOperatorName').value.trim();
+            const contact = document.getElementById('newOperatorContact').value.trim();
+            const email = document.getElementById('newOperatorEmail').value.trim();
+            const address = document.getElementById('newOperatorAddress').value.trim();
+            const emergencyContact = document.getElementById('newOperatorEmergencyContact').value.trim();
+            
+            if (!name || !contact) {
+                showAlert('Please fill required fields (Name and Contact)', 'danger');
+                return;
+            }
+            
+            // Create new operator
+            const newOperator = {
+                id: generateId(),
+                name,
+                contact,
+                email: email || null,
+                address: address || null,
+                emergencyContact: emergencyContact || null,
+                createdAt: new Date().toISOString()
+            };
+            
+            warehouseData.operators.push(newOperator);
+            
+            saveDataToStorage();
+            closeModal('addOperatorModal');
+            updateOperators();
+            updateAllStats();
+            
+            showAlert(`Operator "${name}" added successfully!`, 'success');
+        }
+
+        // Stock Management Functions
+        function addStockToWarehouse() {
+            const productId = parseInt(document.getElementById('addStockModal').dataset.productId);
+            const quantity = parseInt(document.getElementById('addStockQuantity').value);
+            const location = document.getElementById('stockLocation').value.trim();
+            const supplier = document.getElementById('stockSupplier').value.trim();
+            const costPrice = parseFloat(document.getElementById('stockCostPrice').value);
+            
+            if (!quantity || quantity <= 0) {
+                showAlert('Please enter a valid quantity', 'danger');
+                return;
+            }
+            
+            if (!location) {
+                showAlert('Please enter storage location', 'warning');
+                return;
+            }
+            
+            // Update inventory
+            const inventory = warehouseData.inventory.find(inv => inv.productId === productId);
+            if (inventory) {
+                inventory.quantity += quantity;
+                inventory.location = location;
+                inventory.lastUpdated = new Date().toISOString();
+            } else {
+                warehouseData.inventory.push({
+                    productId,
+                    quantity,
+                    location,
+                    lastUpdated: new Date().toISOString()
+                });
+            }
+            
+            // Update product cost price if provided
+            if (costPrice) {
+                const product = warehouseData.products.find(p => p.id === productId);
+                if (product) {
+                    product.costPrice = costPrice;
+                }
+            }
+            
+            // Add transaction
+            addTransaction('stock_added', { 
+                productId, 
+                quantity, 
+                supplier: supplier || 'Manual Entry',
+                costPrice 
+            });
+            
+            saveDataToStorage();
+            closeModal('addStockModal');
+            updateWarehouse();
+            updateAllStats();
+            
+            showAlert('Stock added successfully!', 'success');
+        }
+
+        // Sales Recording Functions
+        function loadOperatorStockForSales() {
+            const operatorId = parseInt(document.getElementById('salesOperator').value);
+            const date = document.getElementById('salesDate').value;
+            
+            const container = document.getElementById('salesProductsContainer');
+            container.innerHTML = '';
+            
+            if (!operatorId) {
+                document.getElementById('salesSummary').style.display = 'none';
+                return;
+            }
+            
+            // Get operator assignments for the date
+            const assignments = warehouseData.assignments.filter(assignment => 
+                assignment.operatorId === operatorId && assignment.date === date
+            );
+            
+            if (assignments.length === 0) {
+                container.innerHTML = `
+                    <div class="alert alert-warning">
+                        No stock assigned to this operator for the selected date.
+                    </div>
+                `;
+                document.getElementById('salesSummary').style.display = 'none';
+                return;
+            }
+            
+            assignments.forEach(assignment => {
+                const product = warehouseData.products.find(p => p.id === assignment.productId);
+                if (!product) return;
+                
+                const alreadySold = getAssignmentSoldQuantity(assignment.id);
+                const remaining = assignment.quantity - alreadySold;
+                
+                if (remaining <= 0) return; // Skip if nothing left to sell
+                
+                const productDiv = document.createElement('div');
+                productDiv.className = 'card';
+                productDiv.style.cssText = 'margin-bottom: 1rem; padding: 1rem; background: var(--gray-50);';
+                productDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                        <div>
+                            <h4 style="margin: 0; color: var(--primary);">${product.name} (${product.size})</h4>
+                            <p style="margin: 0.25rem 0; color: var(--gray-600);">
+                                Assigned: ${assignment.quantity} | Already Sold: ${alreadySold} | Available: ${remaining}
+                            </p>
+                        </div>
+                        <span class="product-badge badge-info">₹${product.price}/unit</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Quantity Sold</label>
+                        <input type="number" class="form-input sales-quantity" 
+                               min="0" max="${remaining}" value="0" 
+                               data-assignment-id="${assignment.id}"
+                               data-product-id="${product.id}"
+                               data-unit-price="${product.price}"
+                               data-cost-price="${product.costPrice}"
+                               oninput="updateSalesSummary()">
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; font-size: 0.875rem; color: var(--gray-600);">
+                        <div>Cost: ₹${product.costPrice}</div>
+                        <div>Profit/Unit: ₹${product.price - product.costPrice}</div>
+                        <div>Total: <span class="sale-total">₹0</span></div>
+                    </div>
+                `;
+                
+                container.appendChild(productDiv);
+            });
+            
+            document.getElementById('salesSummary').style.display = 'block';
+            updateSalesSummary();
+        }
+
+        function updateSalesSummary() {
+            const quantityInputs = document.querySelectorAll('.sales-quantity');
+            let totalQuantity = 0;
+            let totalAmount = 0;
+            let totalProfit = 0;
+            
+            quantityInputs.forEach(input => {
+                const quantity = parseInt(input.value) || 0;
+                const unitPrice = parseFloat(input.dataset.unitPrice);
+                const costPrice = parseFloat(input.dataset.costPrice);
+                
+                const itemTotal = quantity * unitPrice;
+                const itemProfit = quantity * (unitPrice - costPrice);
+                
+                totalQuantity += quantity;
+                totalAmount += itemTotal;
+                totalProfit += itemProfit;
+                
+                // Update individual item total
+                const saleTotal = input.parentElement.parentElement.querySelector('.sale-total');
+                if (saleTotal) {
+                    saleTotal.textContent = `₹${itemTotal.toLocaleString()}`;
+                }
+            });
+            
+            document.getElementById('totalQuantitySold').textContent = totalQuantity;
+            document.getElementById('totalSaleAmount').textContent = `₹${totalAmount.toLocaleString()}`;
+            document.getElementById('totalProfitAmount').textContent = `₹${totalProfit.toLocaleString()}`;
+        }
+
+        function recordSales() {
+            const operatorId = parseInt(document.getElementById('salesOperator').value);
+            const date = document.getElementById('salesDate').value;
+            
+            if (!operatorId) {
+                showAlert('Please select an operator', 'danger');
+                return;
+            }
+            
+            const quantityInputs = document.querySelectorAll('.sales-quantity');
+            const sales = [];
+            
+            quantityInputs.forEach(input => {
+                const quantity = parseInt(input.value) || 0;
+                if (quantity > 0) {
+                    sales.push({
+                        assignmentId: input.dataset.assignmentId,
+                        productId: parseInt(input.dataset.productId),
+                        quantity,
+                        unitPrice: parseFloat(input.dataset.unitPrice)
+                    });
+                }
+            });
+            
+            if (sales.length === 0) {
+                showAlert('Please enter quantities for at least one product', 'warning');
+                return;
+            }
+            
+            // Record each sale
+            sales.forEach(sale => {
+                const saleRecord = {
+                    id: generateId(),
+                    operatorId,
+                    productId: sale.productId,
+                    assignmentId: sale.assignmentId,
+                    quantity: sale.quantity,
+                    unitPrice: sale.unitPrice,
+                    date,
+                    timestamp: new Date().toISOString()
+                };
+                
+                warehouseData.sales.push(saleRecord);
+                
+                // Add transaction
+                addTransaction('sale', {
+                    operatorId,
+                    productId: sale.productId,
+                    quantity: sale.quantity,
+                    amount: sale.quantity * sale.unitPrice
+                });
+            });
+            
+            saveDataToStorage();
+            closeModal('recordSalesModal');
+            updateAllStats();
+            updateSales();
+            
+            showAlert('Sales recorded successfully!', 'success');
+        }
+
+        // Invoice Management Functions
+        function populateProductSelects() {
+            const productSelects = document.querySelectorAll('.invoice-product');
+            
+            productSelects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Select product...</option>';
+                
+                warehouseData.products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.id;
+                    option.textContent = `${product.name} (${product.size}) - ₹${product.price}`;
+                    option.dataset.price = product.price;
+                    select.appendChild(option);
+                });
+                
+                if (currentValue) select.value = currentValue;
+            });
+        }
+
+        function addInvoiceItem() {
+            const container = document.getElementById('invoiceItemsContainer');
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'invoice-item';
+            itemDiv.innerHTML = `
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 1rem; align-items: end; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--gray-200); border-radius: 8px;">
+                    <div class="form-group mb-0">
+                        <label class="form-label">Product</label>
+                        <select class="form-select invoice-product">
+                            <option value="">Select product...</option>
+                        </select>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" class="form-input invoice-quantity" min="1">
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label">Unit Price</label>
+                        <input type="number" class="form-input invoice-unit-price" step="0.01" readonly>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label">Total</label>
+                        <input type="number" class="form-input invoice-item-total" readonly>
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeInvoiceItem(this)" style="margin-top: 1.5rem;">
+                        🗑️
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(itemDiv);
+            populateProductSelects();
+        }
+
+        function removeInvoiceItem(button) {
+            const itemDiv = button.closest('.invoice-item');
+            itemDiv.remove();
+            updateInvoiceTotals();
+        }
+
+        function updateInvoiceProductPrice(select) {
+            const selectedOption = select.options[select.selectedIndex];
+            const price = selectedOption ? selectedOption.dataset.price : 0;
+            
+            const itemDiv = select.closest('.invoice-item');
+            const priceInput = itemDiv.querySelector('.invoice-unit-price');
+            priceInput.value = price;
+            
+            calculateInvoiceItemTotal(select);
+        }
+
+        function calculateInvoiceItemTotal(input) {
+            const itemDiv = input.closest('.invoice-item');
+            const quantity = parseFloat(itemDiv.querySelector('.invoice-quantity').value) || 0;
+            const unitPrice = parseFloat(itemDiv.querySelector('.invoice-unit-price').value) || 0;
+            const totalInput = itemDiv.querySelector('.invoice-item-total');
+            
+            totalInput.value = (quantity * unitPrice).toFixed(2);
+            updateInvoiceTotals();
+        }
+
+        function updateInvoiceTotals() {
+            const itemTotals = document.querySelectorAll('.invoice-item-total');
+            let subtotal = 0;
+            
+            itemTotals.forEach(input => {
+                subtotal += parseFloat(input.value) || 0;
+            });
+            
+            const tax = subtotal * 0.18; // 18% GST
+            const total = subtotal + tax;
+            
+            document.getElementById('invoiceSubtotal').textContent = `₹${subtotal.toLocaleString()}`;
+            document.getElementById('invoiceTax').textContent = `₹${tax.toLocaleString()}`;
+            document.getElementById('invoiceTotal').textContent = `₹${total.toLocaleString()}`;
+        }
+
+        function createInvoice() {
+            const operatorId = parseInt(document.getElementById('invoiceOperator').value);
+            const number = document.getElementById('invoiceNumber').value;
+            const date = document.getElementById('invoiceDate').value;
+            const dueDate = document.getElementById('invoiceDueDate').value;
+            const notes = document.getElementById('invoiceNotes').value;
+            
+            if (!operatorId || !number || !date || !dueDate) {
+                showAlert('Please fill all required fields', 'danger');
+                return;
+            }
+            
+            // Collect invoice items
+            const items = [];
+            const itemDivs = document.querySelectorAll('.invoice-item');
+            
+            itemDivs.forEach(itemDiv => {
+                const productId = parseInt(itemDiv.querySelector('.invoice-product').value);
+                const quantity = parseFloat(itemDiv.querySelector('.invoice-quantity').value);
+                const unitPrice = parseFloat(itemDiv.querySelector('.invoice-unit-price').value);
+                const total = parseFloat(itemDiv.querySelector('.invoice-item-total').value);
+                
+                if (productId && quantity > 0 && unitPrice > 0) {
+                    items.push({
+                        productId,
+                        quantity,
+                        unitPrice,
+                        total
+                    });
+                }
+            });
+            
+            if (items.length === 0) {
+                showAlert('Please add at least one item to the invoice', 'warning');
+                return;
+            }
+            
+            // Calculate totals
+            const subtotal = items.reduce((sum, item) => sum + item.total, 0);
+            const tax = subtotal * 0.18;
+            const total = subtotal + tax;
+            
+            // Create invoice
+            const invoice = {
+                id: generateId(),
+                number,
+                operatorId,
+                date,
+                dueDate,
+                items,
+                subtotal,
+                tax,
+                total,
+                notes: notes || null,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+            
+            warehouseData.invoices.push(invoice);
+            
+            // Add transaction
+            addTransaction('invoice_created', {
+                operatorId,
+                invoiceNumber: number,
+                amount: total
+            });
+            
+            saveDataToStorage();
+            closeModal('createInvoiceModal');
+            updateBilling();
+            
+            showAlert(`Invoice ${number} created successfully!`, 'success');
+        }
+
+        function markInvoicePaid(invoiceId) {
+            const invoice = warehouseData.invoices.find(inv => inv.id === invoiceId);
+            if (!invoice) return;
+            
+            invoice.status = 'paid';
+            invoice.paidAt = new Date().toISOString();
+            
+            // Add transaction
+            addTransaction('payment_received', {
+                invoiceId,
+                invoiceNumber: invoice.number,
+                amount: invoice.total
+            });
+            
+            saveDataToStorage();
+            updateBilling();
+            
+            showAlert(`Invoice ${invoice.number} marked as paid!`, 'success');
+        }
+
+        // Settings Management
+        function loadSettings() {
+            document.getElementById('companyName').value = warehouseData.settings.companyName;
+            document.getElementById('currency').value = warehouseData.settings.currency;
+            document.getElementById('lowStockThreshold').value = warehouseData.settings.lowStockThreshold;
+            document.getElementById('timezone').value = warehouseData.settings.timezone;
+        }
+
+        function saveSettings() {
+            warehouseData.settings = {
+                companyName: document.getElementById('companyName').value,
+                currency: document.getElementById('currency').value,
+                lowStockThreshold: parseInt(document.getElementById('lowStockThreshold').value),
+                timezone: document.getElementById('timezone').value
+            };
+            
+            saveDataToStorage();
+            showAlert('Settings saved successfully!', 'success');
+        }
+
+        function resetSettings() {
+            warehouseData.settings = {
+                companyName: 'Campa Cola Warehouse',
+                currency: 'INR',
+                lowStockThreshold: 20,
+                timezone: 'Asia/Kolkata'
+            };
+            
+            loadSettings();
+            saveDataToStorage();
+            showAlert('Settings reset to default values!', 'success');
+        }
+
+        // Data Management Functions
+        function backupData(format) {
+            if (format === 'json') {
+                const dataStr = JSON.stringify(warehouseData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `warehouse-backup-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                
+                URL.revokeObjectURL(url);
+                showAlert('JSON backup created successfully!', 'success');
+            } else if (format === 'excel') {
+                exportToExcel();
+            }
+        }
+
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            
+            // Products sheet
+            const productsWs = XLSX.utils.json_to_sheet(warehouseData.products);
+            XLSX.utils.book_append_sheet(wb, productsWs, 'Products');
+            
+            // Inventory sheet
+            const inventoryData = warehouseData.inventory.map(item => {
+                const product = warehouseData.products.find(p => p.id === item.productId);
+                return {
+                    ProductName: product ? product.name : 'Unknown',
+                    Size: product ? product.size : 'Unknown',
+                    Quantity: item.quantity,
+                    Location: item.location,
+                    LastUpdated: item.lastUpdated
+                };
+            });
+            const inventoryWs = XLSX.utils.json_to_sheet(inventoryData);
+            XLSX.utils.book_append_sheet(wb, inventoryWs, 'Inventory');
+            
+            // Operators sheet
+            const operatorsWs = XLSX.utils.json_to_sheet(warehouseData.operators);
+            XLSX.utils.book_append_sheet(wb, operatorsWs, 'Operators');
+            
+            // Sales sheet
+            const salesData = warehouseData.sales.map(sale => {
+                const operator = warehouseData.operators.find(o => o.id === sale.operatorId);
+                const product = warehouseData.products.find(p => p.id === sale.productId);
+                return {
+                    Date: sale.date,
+                    Operator: operator ? operator.name : 'Unknown',
+                    Product: product ? `${product.name} (${product.size})` : 'Unknown',
+                    Quantity: sale.quantity,
+                    UnitPrice: sale.unitPrice,
+                    Total: sale.quantity * sale.unitPrice,
+                    Timestamp: sale.timestamp
+                };
+            });
+            const salesWs = XLSX.utils.json_to_sheet(salesData);
+            XLSX.utils.book_append_sheet(wb, salesWs, 'Sales');
+            
+            // Transactions sheet
+            const transactionsWs = XLSX.utils.json_to_sheet(warehouseData.transactions);
+            XLSX.utils.book_append_sheet(wb, transactionsWs, 'Transactions');
+            
+            XLSX.writeFile(wb, `warehouse-backup-${new Date().toISOString().split('T')[0]}.xlsx`);
+            showAlert('Excel backup created successfully!', 'success');
+        }
+
+        function restoreData() {
+            const fileInput = document.getElementById('restoreFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showAlert('Please select a backup file', 'warning');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    if (file.name.endsWith('.json')) {
+                        const data = JSON.parse(e.target.result);
+                        
+                        if (confirm('This will replace all current data. Are you sure?')) {
+                            warehouseData = { ...warehouseData, ...data };
+                            saveDataToStorage();
+                            location.reload();
+                        }
+                    } else {
+                        showAlert('Please select a valid JSON backup file', 'danger');
+                    }
+                } catch (error) {
+                    showAlert('Error reading backup file: ' + error.message, 'danger');
+                }
+            };
+            
+            reader.readAsText(file);
+        }
+
+        function confirmResetSystem() {
+            if (confirm('WARNING: This will delete ALL data permanently. This action cannot be undone. Are you absolutely sure?')) {
+                if (confirm('This is your final warning. All products, operators, sales, and settings will be lost forever. Continue?')) {
+                    localStorage.removeItem('warehouseProData');
+                    location.reload();
+                }
+            }
+        }
+
+        // Utility Functions
+        function generateId() {
+            return Date.now() + Math.floor(Math.random() * 1000);
+        }
+
+        function addTransaction(type, data) {
+            const transaction = {
+                id: generateId(),
+                type,
+                timestamp: new Date().toISOString(),
+                ...data
+            };
+            
+            warehouseData.transactions.push(transaction);
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                <span>${getAlertIcon(type)} ${message}</span>
+                <button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; margin-left: auto;">×</button>
+            `;
+            alertDiv.style.display = 'flex';
+            alertDiv.style.alignItems = 'center';
+            
+            // Insert at the top of main content
+            const mainContent = document.querySelector('.main-content');
+            mainContent.insertBefore(alertDiv, mainContent.firstChild);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentElement) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function getAlertIcon(type) {
+            switch(type) {
+                case 'success': return '✅';
+                case 'danger': return '❌';
+                case 'warning': return '⚠️';
+                case 'info': return 'ℹ️';
+                default: return 'ℹ️';
+            }
+        }
+
+        function handleGlobalSearch() {
+            const searchTerm = document.getElementById('globalSearch').value.toLowerCase();
+            // Implement global search functionality here
+            console.log('Searching for:', searchTerm);
+        }
+
+        function showNotifications() {
+            // Implement notifications functionality
+            showAlert('No new notifications', 'info');
+        }
+
+        function showSettings() {
+            openTab('settings');
+        }
+
+        // Export Functions (for different modules)
+        function exportWarehouseToExcel() {
+            const data = warehouseData.inventory.map(item => {
+                const product = warehouseData.products.find(p => p.id === item.productId);
+                return {
+                    'Product Name': product ? product.name : 'Unknown',
+                    'Size': product ? product.size : 'Unknown',
+                    'Category': product ? product.category : 'Unknown',
+                    'Cost Price': product ? product.costPrice : 0,
+                    'Selling Price': product ? product.price : 0,
+                    'Stock Quantity': item.quantity,
+                    'Location': item.location,
+                    'Stock Value': (product ? product.costPrice : 0) * item.quantity,
+                    'Last Updated': new Date(item.lastUpdated).toLocaleDateString()
+                };
+            });
+            
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Warehouse Inventory');
+            XLSX.writeFile(wb, `warehouse-inventory-${new Date().toISOString().split('T')[0]}.xlsx`);
+            
+            showAlert('Warehouse inventory exported to Excel!', 'success');
+        }
+
+        function exportWarehouseToPDF() {
+            showAlert('PDF export functionality would be implemented here', 'info');
+        }
+
+        // Initialize the system when page loads
+        document.addEventListener('DOMContentLoaded', initializeSystem);
+    </script>
+</body>
+</html>
